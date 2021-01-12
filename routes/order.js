@@ -1,0 +1,15 @@
+const express = require('express');
+const {body} = require('express-validator');
+
+const router = express.Router();
+
+const orderController = require('../controllers/order');
+const isAuth = require('../middleware/isAuth');
+
+router.post('/create/order/:cartId', isAuth, orderController.createOrder);
+
+router.post('/create/basket/:eventId', isAuth, orderController.createBasket);
+
+
+
+module.exports = router;
