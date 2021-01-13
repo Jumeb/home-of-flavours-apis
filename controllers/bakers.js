@@ -10,9 +10,9 @@ exports.register = (req, res, next) => {
     const name = req.body.name;
     const categories = req.body.categories;
     const companyName = req.body.companyName;
-    const idCardNumber = req.body.idCardNumber;
+    const idCardNumber = req.body.idCard;
     const password = req.body.password;
-    const telNumber = req.body.telNumber;
+    const telNumber = req.body.tel;
 
     bcrypt.hash(password, 12)
         .then(hashedPassword => {
@@ -33,7 +33,7 @@ exports.register = (req, res, next) => {
             })
         })
         .catch(err =>{
-            errorCode(err, 500);
+            errorCode(err, 500, next);
         });
 }
 
@@ -73,7 +73,7 @@ exports.login = (req, res, next) => {
                 })
         })
         .catch(err => {
-            errorCode(err, 500);
+            errorCode(err, 500, next);
         })
 }
 
@@ -118,7 +118,7 @@ exports.editBaker = (req, res, next) => {
             res.status(200).json({message:'Successfully updated profile', baker: result});
         })
         .catch(err => {
-            errorCode(err, 500);
+            errorCode(err, 500, next);
         })
 }
 
@@ -173,7 +173,7 @@ exports.editBakerImages = (req, res, next) => {
             res.status(200).json({message: 'Image successfullly updated', baker: result})
         })
         .catch(err => {
-            errorCode(err, 500);
+            errorCode(err, 500, next);
         })
 
 }
@@ -203,7 +203,7 @@ exports.deleteBaker = (req, res, next) => {
             res.status(200).json({message: 'Successfully deleted baker'});
         })
         .catch(err => {
-            errorCode(err, 500);
+            errorCode(err, 500, next);
         })
 }
 
@@ -232,6 +232,6 @@ exports.orderStatus = (req, res, next) => {
                 })
         })
         .catch(err => {
-            errorCode(err, 500);
+            errorCode(err, 500, next);
         })
 }

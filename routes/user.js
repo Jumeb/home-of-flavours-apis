@@ -6,7 +6,7 @@ const User = require('../model/user');
 
 const router = express.Router();
 
-router.put('/user/register', [
+router.post('/user/register', [
     body('email')
         .isEmail()
         .withMessage('Enter a valid email')

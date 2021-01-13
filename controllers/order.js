@@ -27,7 +27,7 @@ exports.createOrder = (req, res, next) => {
                 })
         })
         .catch(err => {
-            errorCode(err, 500);
+            errorCode(err, 500, next);
         })
 }
 
@@ -54,7 +54,7 @@ exports.createBasket = (req, res, next) => {
                 })
         })
         .catch(err => {
-            errorCode(err, 500);
+            errorCode(err, 500, next);
         })   
 }
 
@@ -75,7 +75,7 @@ exports.getOrders = (req, res, next) => {
                 })
         })
         .catch(err => {
-            errorCode(err, 500);
+            errorCode(err, 500, next);
         })
 }
 
@@ -98,6 +98,6 @@ exports.getOrder = (req, res, next) => {
                 })
         })
         .catch(err => {
-            errorCode(err, 500);
+            errorCode(err, 500, next);
         })
 }

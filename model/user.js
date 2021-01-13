@@ -14,6 +14,7 @@ const userModel = new Schema({
     telNumber: {
         type: Number,
         required: true,
+        default: 123456,
     },
     image: {
         type: String,

@@ -3,11 +3,15 @@ const express = require("express");
 const bodyParser = require('body-parser');
 const multer = require('multer');
 const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs');
+
+const Admin = require('./model/admin');
 
 const bakerRoutes = require('./routes/bakers');
 const userRoutes = require('./routes/user');
 const pastryRoutes = require('./routes/pastry');
 const orderRoutes = require('./routes/order');
+const adminRoutes = require('./routes/admin');
 
 // const {
 //     bakerRoutes, 
@@ -32,7 +36,7 @@ app.use(bodyParser.json()); //application/json
 
 app.use((req, res, next) => {
     res.setHeader('Access-Control-Allow-Origin', '*'); // 1
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PATCH, DELETE, PUT');
+    res.setHeader('Access-Control-Allow-Methods', 'OPTIONS, GET, POST, PATCH, DELETE, PUT');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
     next();
 });
@@ -47,6 +51,7 @@ app.use(bakerRoutes);
 app.use(userRoutes);
 app.use(pastryRoutes);
 app.use(orderRoutes);
+app.use(adminRoutes);
 
 app.use((error, req, res, next) => {
     console.log(error);

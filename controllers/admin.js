@@ -38,7 +38,7 @@ exports.register = (req, res, next) => {
                 })
         })
         .catch(err => {
-            errorCode(err, 500);
+            errorCode(err, 500, next);
         })
 }
 
@@ -80,7 +80,7 @@ exports.login = (req, res, next) => {
                 })
         })
         .catch(err => {
-            errorCode(err, 500);
+            errorCode(err, 500, next);
         })
 }
 
@@ -127,7 +127,7 @@ exports.createBaker = (req, res, next) => {
             })
         })
         .catch(err =>{
-            errorCode(err, 500);
+            errorCode(err, 500, next);
         });
 }
 
@@ -165,7 +165,7 @@ exports.getBaker = (req, res, next) => {
             res.status(200).json({message: 'Baker found', baker: baker});
         })
         .catch(err => {
-            errorCode(err, 500);
+            errorCode(err, 500, next);
         })
 }
 
@@ -192,7 +192,7 @@ exports.suspendBaker = (req, res, next) => {
                 })
         })
         .catch(err => {
-            errorCode(err, 500);
+            errorCode(err, 500, next);
         })
 }
 
@@ -219,7 +219,7 @@ exports.verifyBaker = (req, res, next) => {
                 })
         })
         .catch(err => {
-            errorCode(err, 500);
+            errorCode(err, 500, next);
         })
 }
 
@@ -248,7 +248,7 @@ exports.deleteBaker = (req, res, next) => {
             res.status(200).json({message: 'Successfully deleted baker'});
         })
         .catch(err => {
-            errorCode(err, 500);
+            errorCode(err, 500, next);
         })
 }
 
@@ -295,7 +295,7 @@ exports.getUser = (req, res, next) => {
             });
         })
         .catch(err => {
-            errorCode(err, 500);
+            errorCode(err, 500, next);
         })
 }
 
@@ -321,7 +321,7 @@ exports.deleteUser = (req, res, next) => {
                 });
         })
         .catch(err => {
-            errorCode(err, 500);
+            errorCode(err, 500, next);
         })
 }
 
@@ -349,6 +349,6 @@ exports.suspendUser = (req, res, next) => {
                 })
         })
         .catch(err => {
-            errorCode(err, 500);
+            errorCode(err, 500, next);
         })
 }

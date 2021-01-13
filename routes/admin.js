@@ -1,4 +1,5 @@
 const express = require('express');
+const {body} = require('express-validator');
 
 const router = express.Router();
 const adminController = require('../controllers/admin');
@@ -11,7 +12,7 @@ const Admin = require('../model/admin');
 ///                                    ///
 //////////////////////////////////////////
 
-router.put('/admin/register', [
+router.post('/admin/register', [
     body('email')
         .isEmail()
         .withMessage('Enter a valid email')

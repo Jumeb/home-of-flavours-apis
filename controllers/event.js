@@ -28,7 +28,7 @@ exports.getEvents = (req, res, next) => {
                 })
         })
         .catch(err => {
-            errorCode(err, 500);
+            errorCode(err, 500, next);
         })
 }
 
@@ -51,7 +51,7 @@ exports.getEvent = (req, res, next) => {
                 })
         })
         .catch(err => {
-            errorCode(err, 500);
+            errorCode(err, 500, next);
         })
 }
 
@@ -97,7 +97,7 @@ exports.createEvent = (req, res, next) => {
                 })
         })
         .catch(err => {
-            errorCode(err, 500);
+            errorCode(err, 500, next);
         })
 }
 
@@ -135,7 +135,7 @@ exports.editProfile = (req, res, next) => {
                 })
         })
         .catch(err => {
-            errorCode(err, 500);
+            errorCode(err, 500, next);
         })
 }
 
@@ -218,6 +218,6 @@ exports.deleteEvent = (req, res, next) => {
                 })
         })
         .catch(err => {
-            errorCode(err, 500);
+            errorCode(err, 500, next);
         })
 }

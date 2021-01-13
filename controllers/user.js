@@ -17,15 +17,17 @@ exports.register = (req, res, next) => {
 
     const name = req.body.name;
     const email = req.body.email;
-    const telNo = req.body.telNo;
+    const telNo = req.body.tel;
     const password = req.body.password;
+
+    console.log(telNo)
 
     bcrypt.hash(password, 12)
         .then(hashedPassword => {
             const user = new User({
                 name: name,
                 email: email,
-                tel_number: telNo,
+                telNumber: telNo,
                 password: hashedPassword,
             })
             return user.save();
@@ -33,8 +35,8 @@ exports.register = (req, res, next) => {
         .then(result => {
             res.status(201).json({message: 'User created', userId: result._id});
         })
-        .catch(errorr => {
-            errorCode(error, 500);
+        .catch(error => {
+            errorCode(error, 500, next);
         })
 
 }
@@ -71,6 +73,6 @@ exports.login = (req, res, next) => {
             res.status(200).json({token: token, userId: loadedUser._id.toString()})
         })
         .catch(err => {
-            errorCode(err, 500);
+            errorCode(err, 500, next);
         })
 }

@@ -25,7 +25,7 @@ exports.fileStorage = multer.diskStorage({
     }
 });
 
-exports.errorCode = (err, code) => {
+exports.errorCode = (err, code, next) => {
     console.log('I landend sher errorCode');
     if(!err.statusCode) {
         err.statusCode = code;
