@@ -20,6 +20,36 @@ const adminModel = new Schema({
     },
     image: {
         type: String,
+    },
+    orders: {
+        type: Number,
+        default: 0,
+    },
+    likes: {
+        users: [{
+            userId: {
+                type: Schema.Types.ObjectId,
+                ref: 'User',
+                required: true
+            },
+            number: {
+                type: Number,
+                required: true
+            },
+        }]
+    },
+    dislikes: {
+         users: [{
+            userId: {
+                type: Schema.Types.ObjectId,
+                ref: 'User',
+                required: true
+            },
+            number: {
+                type: Number,
+                required: true
+            },
+        }]   
     }
 })
 

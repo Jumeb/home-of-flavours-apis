@@ -46,14 +46,39 @@ const bakerModel = new Schema({
         default: true,
     },
     likes: {
-        type: Number,
-        default: 0,
+         users: [{
+            userId: {
+                type: Schema.Types.ObjectId,
+                ref: 'User',
+                required: true
+            },
+            number: {
+                type: Number,
+                default: 0
+            },
+        }]
+    },
+    dislikes: {
+         users: [{
+            userId: {
+                type: Schema.Types.ObjectId,
+                ref: 'User',
+                required: true
+            },
+            number: {
+                type: Number,
+                default: 0
+            },
+        }]
     },
     orders: {
         type: Number,
         default: 0,
-    }
-
+    },
+    total: {
+        type: Number,
+        default: 0
+    },
 }, {timestamps: true});
 
 module.exports = mongoose.model('Baker', bakerModel);

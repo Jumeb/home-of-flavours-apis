@@ -30,6 +30,37 @@ const userModel = new Schema({
         type: Number,
         default: 0,
     },
+    dislikes: {
+        users: [{
+            userId: {
+                type: Schema.Types.ObjectId,
+                ref: 'User',
+                required: true
+            },
+            number: {
+                type: Number,
+                default: 0
+            },
+        }]
+    },
+    likes: {
+         users: [{
+            userId: {
+                type: Schema.Types.ObjectId,
+                ref: 'User',
+                required: true
+            },
+            number: {
+                type: Number,
+                default: 0,
+            },
+        }]
+    },
+    total: {
+        type: Number,
+        required: false,
+        default: 0,
+    },
     suspend: {
         type: Boolean,
         default: false,
