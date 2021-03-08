@@ -25,6 +25,6 @@ const orderModel = new Schema({
         type: String,
         default: 'New',
     }
-});
+}, {timestamps: true});
 
 module.exports = mongoose.model('Order', orderModel);

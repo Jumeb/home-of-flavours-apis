@@ -16,8 +16,30 @@ const pastryModel = new Schema({
         required: true,
     },
     likes: {
-        type: Number,
-        default: 0,
+         users: [{
+            userId: {
+                type: Schema.Types.ObjectId,
+                ref: 'User',
+                required: true
+            },
+            number: {
+                type: Number,
+                default: 0
+            },
+        }]
+    },
+    dislikes: {
+         users: [{
+            userId: {
+                type: Schema.Types.ObjectId,
+                ref: 'User',
+                required: true
+            },
+            number: {
+                type: Number,
+                default: 0
+            },
+        }]
     },
     discount: {
         type: Number,

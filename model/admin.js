@@ -15,7 +15,11 @@ const adminModel = new Schema({
         type: String,
         required: true,
     },
-    telNo: {
+    about: {
+        type: String,
+        default: 'Super-Admin',
+    },
+    telNumber: {
         type: String,
     },
     image: {
