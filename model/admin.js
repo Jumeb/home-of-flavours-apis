@@ -35,11 +35,7 @@ const adminModel = new Schema({
                 type: Schema.Types.ObjectId,
                 ref: 'User',
                 required: true
-            },
-            number: {
-                type: Number,
-                required: true
-            },
+            }
         }]
     },
     dislikes: {
@@ -48,13 +44,87 @@ const adminModel = new Schema({
                 type: Schema.Types.ObjectId,
                 ref: 'User',
                 required: true
-            },
-            number: {
-                type: Number,
-                required: true
-            },
+            }
         }]   
     }
 })
+
+adminModel.methods.like = (userId) => {
+    const userIndex = this.likes.users.findIndex(ui => {
+        return ui.userId.toString() === userId.toString();
+    });
+    const _userIndex = this.dislikes.users.findIndex(ui => {
+        return ui.userId.toString() === userId.toString();
+    })
+
+    const likeData = [...this.likes.users];
+    const dislikeData = [...this.dislikes.users];
+
+    if (userIndex >= 0) {
+        likeData.splice(userIndex, 1);
+    }
+
+    if (_userIndex >= 0) {
+        dislikeData.splice(userIndex, 1);
+    }
+
+    if (userIndex < 0) {
+        likeData.push({
+            userId: userId,
+        })
+    }
+
+    const updatedLikes = {
+        users: likeData
+    }
+
+    const updatedDislikes = {
+        users: dislikeData
+    }
+
+    this.likes = updatedLikes;
+    this.dislikes = updatedDislikes;
+
+    return this.save();
+}
+
+adminModel.methods.dislike = (userId) => {
+    const userIndex = this.likes.users.findIndex(ui => {
+        return ui.userId.toString() === userId.toString();
+    });
+    const _userIndex = this.dislikes.users.findIndex(ui => {
+        return ui.userId.toString() === userId.toString();
+    })
+
+    const likeData = [...this.likes.users];
+    const dislikeData = [...this.dislikes.users];
+
+    if (userIndex >= 0) {
+        likeData.splice(userIndex, 1);
+    }
+
+    if (_userIndex >= 0) {
+        dislikeData.splice(userIndex, 1);
+    }
+
+    if (_userIndex < 0) {
+        dislikeData.push({
+            userId: userId,
+        })
+    }
+
+    const updatedLikes = {
+        users: likeData
+    }
+
+    const updatedDislikes = {
+        users: dislikeData
+    }
+
+    this.likes = updatedLikes;
+    this.dislikes = updatedDislikes;
+
+    return this.save();
+}
 
 module.exports = mongoose.model('Admin', adminModel);

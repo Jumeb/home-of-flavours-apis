@@ -147,7 +147,7 @@ exports.getBakers = (req, res, next) => {
             res.status(200).json({message: "Fetched Bakers", bakers: bakers, totalItems: totalItems})
         })
         .catch(err => {
-            errorCode(err, 500)
+            errorCode(err, 500, next);
         })
 }
 

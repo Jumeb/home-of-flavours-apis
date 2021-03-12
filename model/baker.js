@@ -11,6 +11,14 @@ const bakerModel = new Schema({
         type: String,
         required: true,
     },
+    type: {
+        type: String,
+        default: 'Baker',
+    },
+    email: {
+        type: String,
+        required: true,
+    },
     ceoImage: {
         type: String,
     },
@@ -43,7 +51,7 @@ const bakerModel = new Schema({
     },
     verify: {
         type: Boolean,
-        default: true,
+        default: false,
     },
     likes: {
          users: [{
@@ -51,11 +59,7 @@ const bakerModel = new Schema({
                 type: Schema.Types.ObjectId,
                 ref: 'User',
                 required: true
-            },
-            number: {
-                type: Number,
-                default: 0
-            },
+            }
         }]
     },
     dislikes: {
@@ -64,11 +68,7 @@ const bakerModel = new Schema({
                 type: Schema.Types.ObjectId,
                 ref: 'User',
                 required: true
-            },
-            number: {
-                type: Number,
-                default: 0
-            },
+            }
         }]
     },
     orders: {
@@ -79,6 +79,88 @@ const bakerModel = new Schema({
         type: Number,
         default: 0
     },
+    password: {
+        type: String,
+        required: true,
+    }
 }, {timestamps: true});
+
+bakerModel.methods.like = (userId) => {
+    const userIndex = this.likes.users.findIndex(ui => {
+        return ui.userId.toString() === userId.toString();
+    });
+    const _userIndex = this.dislikes.users.findIndex(ui => {
+        return ui.userId.toString() === userId.toString();
+    })
+
+    const likeData = [...this.likes.users];
+    const dislikeData = [...this.dislikes.users];
+
+    if (userIndex >= 0) {
+        likeData.splice(userIndex, 1);
+    }
+
+    if (_userIndex >= 0) {
+        dislikeData.splice(userIndex, 1);
+    }
+
+    if (userIndex < 0) {
+        likeData.push({
+            userId: userId,
+        })
+    }
+
+    const updatedLikes = {
+        users: likeData
+    }
+
+    const updatedDislikes = {
+        users: dislikeData
+    }
+
+    this.likes = updatedLikes;
+    this.dislikes = updatedDislikes;
+
+    return this.save();
+}
+
+bakerModel.methods.dislike = (userId) => {
+    const userIndex = this.likes.users.findIndex(ui => {
+        return ui.userId.toString() === userId.toString();
+    });
+    const _userIndex = this.dislikes.users.findIndex(ui => {
+        return ui.userId.toString() === userId.toString();
+    })
+
+    const likeData = [...this.likes.users];
+    const dislikeData = [...this.dislikes.users];
+
+    if (userIndex >= 0) {
+        likeData.splice(userIndex, 1);
+    }
+
+    if (_userIndex >= 0) {
+        dislikeData.splice(userIndex, 1);
+    }
+
+    if (_userIndex < 0) {
+        dislikeData.push({
+            userId: userId,
+        })
+    }
+
+    const updatedLikes = {
+        users: likeData
+    }
+
+    const updatedDislikes = {
+        users: dislikeData
+    }
+
+    this.likes = updatedLikes;
+    this.dislikes = updatedDislikes;
+
+    return this.save();
+}
 
 module.exports = mongoose.model('Baker', bakerModel);

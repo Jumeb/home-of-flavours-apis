@@ -1,5 +1,6 @@
 const {validationResult} = require('express-validator');
 const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 
 const Baker = require('../model/baker');
 const Order = require('../model/order');
@@ -9,6 +10,7 @@ exports.register = (req, res, next) => {
     validationError(req, 'An error occured', 422);
 
     const name = req.body.name;
+    const email = req.body.email;
     const categories = req.body.categories;
     const companyName = req.body.companyName;
     const idCardNumber = req.body.idCard;
@@ -18,12 +20,13 @@ exports.register = (req, res, next) => {
     bcrypt.hash(password, 12)
         .then(hashedPassword => {
             const baker = new Baker({
-                name: name, 
-                categories: categories,
-                companyName: companyName,
-                idCardNumber: idCardNumber,
+                name, 
+                categories,
+                companyName,
+                idCardNumber,
                 password: hashedPassword,
-                telNumber: telNumber,
+                telNumber,
+                email,
             });
             return baker.save()
         })
@@ -39,19 +42,22 @@ exports.register = (req, res, next) => {
 }
 
 exports.login = (req, res, next) => {
-    const email = req.body.email;
+    const idCardNumber = req.body.email;
     const password = req.body.password;
     let loadedUser;
 
-    Baker.findOne({email: email})
+    console.log(idCardNumber, password);
+
+    Baker.findOne({idCardNumber: idCardNumber})
         .then(baker => {
             if(!baker) {
-                const error = new Error('Baker seems to be invalid');
+                const error = new Error('User not found.');
                 error.statusCode = 401;
                 throw error;
             }
             loadedUser = baker;
-            return bcrypt(password, baker.password);
+            console.log(baker)
+            return bcrypt.compare(password, baker.password);
         })
         .then(isEqual => {
             if(!isEqual) {
@@ -62,7 +68,7 @@ exports.login = (req, res, next) => {
             const token = jwt.sign({
                 email: loadedUser.email,
                 userId: loadedUser._id.toString(),
-                name: loadedUser.name
+                type: loadedUser.type,
             },
                 'somesupersecret',
                 {expiresIn: '90d'}
@@ -70,7 +76,7 @@ exports.login = (req, res, next) => {
             res.status(200)
                 .json({
                     token: token, 
-                    bakerId: loadedUser._id.toString()
+                    user: loadedUser
                 })
         })
         .catch(err => {
@@ -140,7 +146,6 @@ exports.editBakerImages = (req, res, next) => {
     const images = req.files;
 
     if (images) {
-        console.log(images);
         logo = images.logo[0].path;
         bakerImage = images.bakerImage[0].path;
     }

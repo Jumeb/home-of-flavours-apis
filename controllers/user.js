@@ -49,16 +49,16 @@ exports.login = (req, res, next) => {
     User.findOne({email: email})
         .then(user => {
             if (!user) {
-                const error = new Error('User seems to be invalid');
+                const error = new Error('User not found.');
                 error.statusCode = 401;
                 throw error;
             }
             loadedUser = user;
-            return bcrypt(password, user.password);
+            return bcrypt.compare(password, user.password);
         })
         .then(isEqual => {
             if(!isEqual) {
-                const error = new Error('Wrong credentials');
+                const error = new Error('Invalid email or password');
                 error.statusCode = 401;
                 throw error;
             }
@@ -70,7 +70,10 @@ exports.login = (req, res, next) => {
                 'somesupersecret',
                 {expiresIn: '90d' }
             );
-            res.status(200).json({token: token, userId: loadedUser._id.toString()})
+            res.status(200).json({
+                token: token, 
+                user: loadedUser
+            });
         })
         .catch(err => {
             errorCode(err, 500, next);

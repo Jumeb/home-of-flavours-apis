@@ -6,16 +6,16 @@ const {errorCode, clearImage, validationError} = require('../utils/utilities');
 
 exports.getPastries = (req, res, next) => {
     validationError(req, 'An error occured', 422);
-
+    const bakerId = req.params.bakerId;
     const currentPage = req.query.page || 1;
     const perPage = 18;
     let totalItems;
 
-    Pastry.find()
+    Pastry.find({creator: bakerId})
         .countDocuments()
         .then(count => {
             totalItems = count;
-            return Pastry.find()
+            return Pastry.find({creator: bakerId})
                 .skip((currentPage - 1) * perPage)
                 .limit(perPage)
         })
@@ -28,7 +28,36 @@ exports.getPastries = (req, res, next) => {
                 })
         })
         .catch(err => {
-            errorCode(err, 500);
+            errorCode(err, 500, next);
+        })
+}
+
+exports.getSuperPastries = (req, res, next) => {
+    validationError(req, 'An error occured', 422);
+
+    const currentPage = req.query.page || 1;
+    const perPage = 18;
+    let totalItems;
+
+    Pastry.find()
+        .countDocuments()
+        .then(count => {
+            totalItems = count;
+            return Pastry.find()
+                .populate('creator')
+                .skip((currentPage - 1) * perPage)
+                .limit(perPage)
+        })
+        .then(pastries => {
+            res.status(200)
+                .json({
+                    message: 'Fetched Pastries', 
+                    pastries: pastries, 
+                    totalItems: totalItems
+                })
+        })
+        .catch(err => {
+            errorCode(err, 500, next);
         })
 }
 
@@ -57,26 +86,31 @@ exports.getPastry = (req, res, next) => {
 
 exports.createPastry = (req, res, next) => {
     validationError(req, 'An error occured', 422);
+    
+    if (!req.files.pastryImage) {
+        validationError(req, 'No Pastry Image provided', 401);
+    }
+    
+    let image;
+    const name = req.body.name;
+    const discount = req.body.discount;
+    const price = req.body.price;
+    const description = req.body.about;
+    const type = req.body.type;
+    const creator = req.body.bakerId;
 
-    if (!req.files) {
-        const error = new Error('No valid files found');
-        error.statusCode = 422;
-        throw error;
+    if (req.files.pastryImage) {
+        image = req.files.pastryImage[0].path;
     }
 
-    const name = req.body.name;
-    const price = req.body.price;
-    const description = req.body.description;
-    const images = req.files;
-
-    console.log(images.pastryImage);
-
     const pastry = new Pastry({
-        name: name,
-        price: price,
-        description: description,
-        image: images.pastryImage[0].path,
-        creator: req.userId,
+        name,
+        price,
+        description,
+        image,
+        type,
+        discount,
+        creator,
     });
 
     pastry.save()
@@ -88,7 +122,7 @@ exports.createPastry = (req, res, next) => {
                 })
         })
         .catch(err => {
-            errorCode(err, 500);
+            errorCode(err, 500, next);
         })
 
 }
@@ -195,5 +229,42 @@ exports.deletePastry = (req, res, next) => {
         })
         .catch(err => {
             errorCode(err, 500);
+        })
+}
+
+
+exports.likePastry = (req, res, next) => {
+    validationError(req, 'An error occured', 422);
+
+    const pastryId = req.params.pastryId;
+    const userId = req.query.user
+
+    Pastry.findById(pastryId)
+        .then(pastry => {
+            return pastry.like(userId);
+        })
+        .then(result => {
+            res.status(200).json({message: 'Liked pastry', response: result})
+        })
+        .catch(err => {
+            res.status(500).json({message: 'Unsuccessful!'})
+        })
+}
+
+exports.disLikePastry = (req, res, next) => {
+    validationError(req, 'An error occured', 422);
+
+    const pastryId = req.params.pastryId;
+    const userId = req.query.user
+
+    Pastry.findById(pastryId)
+        .then(pastry => {
+            return pastry.dislike(userId);
+        })
+        .then(result => {
+            res.status(200).json({message: 'Liked pastry', response: result})
+        })
+        .catch(err => {
+            res.status(500).json({message: 'Unsuccessful!'})
         })
 }

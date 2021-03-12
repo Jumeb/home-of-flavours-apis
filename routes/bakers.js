@@ -3,10 +3,32 @@ const { body } = require("express-validator");
 
 const bakersController = require("../controllers/bakers");
 const isAuth = require('../middleware/isAuth');
+const Baker = require('../model/baker');
 
 const router = express.Router();
 
 router.post('/baker/register', [
+        body('email')
+        .isEmail()
+        .withMessage('Enter a valid email')
+        .custom((value , {req}) => {
+            return Baker.findOne({email: value})
+            .then(bakerDoc => {
+                if(bakerDoc) {
+                    return Promise.reject('E-mail is already in use.');
+                }
+            });
+        })
+        .normalizeEmail(),
+        body('idCard')
+        .custom((value , {req}) => {
+            return Baker.findOne({idCardNumber: value})
+            .then(bakerDoc => {
+                if(bakerDoc) {
+                    return Promise.reject(`Id card number ${value} is already in use.`);
+                }
+            });
+        }),
         body('password').trim().isLength({min: 5}),
         body('name').trim().isLength({min: 5})
 ], bakersController.register)
