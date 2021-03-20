@@ -6,6 +6,8 @@ const User = require('../model/user');
 
 const router = express.Router();
 
+router.get('/user/getcart/:userId', userController.getCart);
+
 router.post('/user/register', [
     body('email')
         .isEmail()
@@ -24,5 +26,9 @@ router.post('/user/register', [
 ], userController.register);
 
 router.post('/user/login', userController.login);
+
+router.post('/user/addToCart/:pastryId', userController.postCart);
+
+router.post('/user/subFromCart/:pastryId', userController.subFromCart);
 
 module.exports = router;

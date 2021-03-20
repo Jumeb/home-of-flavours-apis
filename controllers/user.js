@@ -3,17 +3,12 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
 const User = require('../model/user');
-const {errorCode, clearImage} = require('../utils/utilities');
+const Pastry = require('../model/pastry');
+const {errorCode, clearImage, validationError} = require('../utils/utilities');
+const { populate } = require('../model/pastry');
 
 exports.register = (req, res, next) => {
-    const errors = validationResult(req);
-    if(!errors.isEmpty()) {
-        const error = new Error('Validation failed, entered data is incorrect');
-        error.statusCode = 422;
-        error.data = errors.array();
-        console.log(error.data);
-        throw error;
-    }
+    validationError(req, 'Validation failed, entered data is incorrect', 422);
 
     const name = req.body.name;
     const email = req.body.email;
@@ -42,9 +37,12 @@ exports.register = (req, res, next) => {
 }
 
 exports.login = (req, res, next) => {
+    validationError(req, 'Validation failed, entered data is incorrect', 422);
+    
     const email = req.body.email;
     const password = req.body.password;
     let loadedUser;
+
 
     User.findOne({email: email})
         .then(user => {
@@ -78,4 +76,91 @@ exports.login = (req, res, next) => {
         .catch(err => {
             errorCode(err, 500, next);
         })
+}
+
+
+exports.getCart = (req, res, next) => {
+    validationError(req, 'An error occured', 422);
+    const userId = req.params.userId;
+    let pastries;
+
+    User.findById(userId)
+        .populate({
+            path: 'cart.pastries.pastryId',
+            populate: {
+                path: 'creator',
+                select: 'companyName name -_id '
+            }
+        })
+        .then(user => {
+            console.log(user.cart, 'fetched');
+            let obj = {};
+            pastries = user.cart.pastries;
+            const data = (cart) => {
+                cart.map((i) => {
+                    let _baker = i.pastryId.creator.companyName.toString();
+                    if(obj[_baker] === undefined) {
+                        obj[_baker] = [i];
+                        } else {
+                            obj[_baker].push(i);  
+                        } 
+                    });
+                    return obj;
+            }
+            let bakers = data(pastries);
+            res.status(200)
+                .json({
+                    message: 'Success',
+                    bakers: bakers,
+                })
+        })
+}
+
+exports.postCart = (req, res, next) => {
+    const pastryId = req.params.pastryId;
+    const userId = req.query.user;
+
+    validationError(req, 'An error occured', 422);
+
+    Pastry.findById(pastryId)
+        .then(pastry => {
+            User.findById(userId)
+                .then(user => {
+                    return user.addToCart(pastry._id);
+                })
+                .then(result => {
+                    res.status(200)
+                        .json({message: 'Success'})
+                })
+        })
+        .catch(err => {
+            errorCode(err, 500, next);
+        })
+}
+
+exports.subFromCart = (req, res, next) => {
+    const pastryId = req.params.pastryId;
+    const userId = req.query.user;
+
+    validationError(req, 'An error occured', 422);
+
+    Pastry.findById(pastryId)
+        .then(pastry => {
+            User.findById(userId)
+                .then(user => {
+                    return user.subFromCart(pastry._id);
+                })
+                .then(result => {
+                    res.status(200)
+                        .json({message: 'Success'})
+                })
+        })
+        .catch(err => {
+            errorCode(err, 500, next);
+        })
+
+}
+
+exports.removeFromCart = (req, res, next) => {
+
 }

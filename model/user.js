@@ -57,6 +57,22 @@ const userModel = new Schema({
         type: Boolean,
         default: false,
     },
+    cart: {
+        pastries: [{
+            pastryId: {
+                type: Schema.Types.ObjectId,
+                ref: 'Pastry',
+                required: true
+            },
+            quantity: {
+                type: Number,
+                required: true
+            },
+            message: {
+                type: String,
+            }
+        }]
+    },
     events: [
         {
             type: Schema.Types.ObjectId,
@@ -140,6 +156,65 @@ userModel.methods.dislike = (userId) => {
     this.likes = updatedLikes;
     this.dislikes = updatedDislikes;
 
+    return this.save();
+}
+
+userModel.methods.addToCart = function (pastryId) {
+    const cartProductIndex = this.cart.pastries.findIndex(cp => {
+        return cp.pastryId.toString() === pastryId.toString(); 
+    });
+    let newQuantity = 1;
+    const updatedCartItems = [...this.cart.pastries];
+
+    if (cartProductIndex >= 0) {
+        newQuantity = this.cart.pastries[cartProductIndex].quantity + 1; 
+        updatedCartItems[cartProductIndex].quantity = newQuantity; 
+    } else { 
+        updatedCartItems.push({
+            pastryId,
+            quantity: newQuantity
+        })
+    }
+    const updatedCart = { 
+        pastries: updatedCartItems
+    };
+    this.cart = updatedCart; 
+    return this.save();
+}
+
+userModel.methods.subFromCart = function (pastryId) {
+    const cartProductIndex = this.cart.pastries.findIndex(cp => {
+        return cp.pastryId.toString() === pastryId.toString();
+    });
+    const updatedCartItems = [...this.cart.pastries];
+    
+
+    if (cartProductIndex >= 0) {
+        if (updatedCartItems[cartProductIndex].quantity > 0) {
+            quantity = this.cart.pastries[cartProductIndex].quantity - 1;
+            updatedCartItems[cartProductIndex].quantity = quantity;
+        } else if (updatedCartItems[cartProductIndex].quantity === 0) {
+            updatedCartItems.splice(cartProductIndex, 1);
+        }
+    }
+    const updatedCart = {
+        items: updatedCartItems
+    };
+    this.cart = updatedCart;
+    return this.save();
+}
+
+userModel.methods.removeFromCart = function(pastryId) {
+    const updatedCartItems = this.cart.pastries.filter(item => {
+        return item.pastryId.toString() !== pastryId.toString();
+    });
+
+    this.cart.pastries = updatedCartItems;
+    return this.save();
+}
+
+userModel.methods.clearCart = function(notOrdered) {
+    this.cart.pastries = notOrdered
     return this.save();
 }
 

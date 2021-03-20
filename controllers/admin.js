@@ -135,11 +135,13 @@ exports.getBakers = (req, res, next) => {
     const currentPage = req.query.page || 1;
     const perPage = 18;
     let totalItems;
-    Baker.find()
+    Baker.find({verify: true})
+        .sort({name: 'asc'})
         .countDocuments()
         .then(count => {
             totalItems = count;
-            return Baker.find()
+            return Baker.find() //put verify here by end of day
+                .sort({companyName: 'asc'})
                 .skip((currentPage - 1) * perPage)
                 .limit(perPage)
         })

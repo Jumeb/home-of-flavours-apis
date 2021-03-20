@@ -48,22 +48,6 @@ const pastryModel = new Schema({
             }
         }]
     },
-    cart: {
-        items: [{
-            pastryId: {
-                type: Schema.Types.ObjectId,
-                ref: 'Pastry',
-                required: true
-            },
-            quantity: {
-                type: Number,
-                required: true
-            },
-            message: {
-                type: String,
-            }
-        }]
-    },
     creator: {
         type: Schema.Types.ObjectId,
         ref: 'Baker',
@@ -88,7 +72,7 @@ pastryModel.methods.like = function (userId) {
     }
 
     if (_userIndex >= 0) {
-        dislikeData.splice(userIndex, 1);
+        dislikeData.splice(_userIndex, 1);
     }
 
     if (userIndex < 0) {
@@ -127,7 +111,7 @@ pastryModel.methods.dislike = function (userId) {
     }
 
     if (_userIndex >= 0) {
-        dislikeData.splice(userIndex, 1);
+        dislikeData.splice(_userIndex, 1);
     }
 
     if (_userIndex < 0) {

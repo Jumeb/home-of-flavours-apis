@@ -127,7 +127,7 @@ exports.createPastry = (req, res, next) => {
 
 }
 
-exports.editProfile = (req, res, next) => {
+exports.editPastry = (req, res, next) => {
     validationError(req, 'An Error occured', 422);
 
     const pastryId = req.params.pastryId;
@@ -164,7 +164,7 @@ exports.editProfile = (req, res, next) => {
         })
 }
 
-exports.editImages = (req, res, next) => {
+exports.editPastryImage = (req, res, next) => {
     validationError(req, 'An error occured', 422);
 
     const pastryId = req.params.pastryId;
@@ -262,7 +262,7 @@ exports.disLikePastry = (req, res, next) => {
             return pastry.dislike(userId);
         })
         .then(result => {
-            res.status(200).json({message: 'Liked pastry', response: result})
+            res.status(200).json({message: 'Dislked pastry', response: result})
         })
         .catch(err => {
             res.status(500).json({message: 'Unsuccessful!'})

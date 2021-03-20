@@ -12,9 +12,9 @@ router.get('/pastries/:pastryId', pastryController.getPastry);
 
 router.post('/create/pastry',  pastryController.createPastry);
 
-router.put('/pastries/images/:pastryId', pastryController.editImages);
+router.put('/pastries/images/:pastryId', pastryController.editPastryImage);
 
-router.put('/pastries/profile/:pastryId', pastryController.editProfile);
+router.put('/pastries/profile/:pastryId', pastryController.editPastry);
 
 router.post('/pastry/like/:pastryId', pastryController.likePastry);
 
