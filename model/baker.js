@@ -28,6 +28,9 @@ const bakerModel = new Schema({
     momoNumber: {
         type: Number,
     },
+    momoName: {
+        type: String,
+    },
     telNumber: {
         type: Number,
     },
@@ -38,9 +41,6 @@ const bakerModel = new Schema({
     categories: {
         type: [String],
         required: true,
-    },
-    type: {
-        type: String,
     },
     about: {
         type: String

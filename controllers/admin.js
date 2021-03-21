@@ -6,7 +6,7 @@ const Baker = require('../model/baker');
 const User = require('../model/user');
 const Admin = require('../model/admin');
 const Order = require('../model/order');
-const { validationError, errorCode } = require('../utils/utilities');
+const { validationError, errorCode, clearImage } = require('../utils/utilities');
 
 exports.register = (req, res, next) => {
     validationError(req, 'An error occured', 422);
@@ -135,12 +135,34 @@ exports.getBakers = (req, res, next) => {
     const currentPage = req.query.page || 1;
     const perPage = 18;
     let totalItems;
-    Baker.find({verify: true})
+    Baker.find()
         .sort({name: 'asc'})
         .countDocuments()
         .then(count => {
             totalItems = count;
             return Baker.find() //put verify here by end of day
+                .sort({companyName: 'asc'})
+                .skip((currentPage - 1) * perPage)
+                .limit(perPage)
+        })
+        .then(bakers => {
+            res.status(200).json({message: "Fetched Bakers", bakers: bakers, totalItems: totalItems})
+        })
+        .catch(err => {
+            errorCode(err, 500, next);
+        })
+}
+
+exports.getVerifiedBakers = (req, res, next) => {
+    const currentPage = req.query.page || 1;
+    const perPage = 18;
+    let totalItems;
+    Baker.find()
+        .sort({name: 'asc'})
+        .countDocuments()
+        .then(count => {
+            totalItems = count;
+            return Baker.find({verify: true}) //put verify here by end of day
                 .sort({companyName: 'asc'})
                 .skip((currentPage - 1) * perPage)
                 .limit(perPage)
@@ -175,6 +197,7 @@ exports.suspendBaker = (req, res, next) => {
     validationError(req, 'An error occured', 422);
 
     const bakerId = req.params.bakerId;
+    let suspend;
 
     Baker.findById(bakerId)
         .then(baker => {
@@ -184,12 +207,13 @@ exports.suspendBaker = (req, res, next) => {
                 throw error;
             }
             baker.suspend = !baker.suspend;
+            suspend = baker.suspend;
             return baker.save();
         })
         .then(result => {
             res.status(200)
                 .json({
-                    message: 'Baker suspended',
+                    message: suspend ? 'Baker has been suspended' : 'Baker has been unsuspended',
                     baker: result,
                 })
         })
@@ -202,6 +226,7 @@ exports.verifyBaker = (req, res, next) => {
     validationError(req, 'An error occured', 422);
 
     const bakerId = req.params.bakerId;
+    let verify;
 
     Baker.findById(bakerId)
         .then(baker => {
@@ -211,12 +236,13 @@ exports.verifyBaker = (req, res, next) => {
                 throw error;
             }
             baker.verify = !baker.verify;
+            verify = baker.verify;
             return baker.save();
         })
         .then(result => {
             res.status(200)
                 .json({
-                    message: 'Baker suspended',
+                    message: verify ? 'Baker has been verified' : 'Baker has been unverified',
                     baker: result,
                 })
         })
@@ -242,8 +268,8 @@ exports.deleteBaker = (req, res, next) => {
                 error.statusCode = 422;
                 throw error;
             }
-            clearImage(baker.ceo_image);
-            clearImage(baker.company_image);
+            clearImage(baker.ceoImage);
+            clearImage(baker.companyImage);
             return Baker.findByIdAndRemove(bakerId);
         })
         .then(result => {

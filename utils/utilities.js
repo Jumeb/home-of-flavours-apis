@@ -26,7 +26,6 @@ exports.fileStorage = multer.diskStorage({
 });
 
 exports.errorCode = (err, code, next) => {
-    console.log('I landend sher errorCode');
     if(!err.statusCode) {
         err.statusCode = code;
     }
@@ -35,7 +34,7 @@ exports.errorCode = (err, code, next) => {
 
 exports.clearImage = filePath => {
     // filePath = path.join(__dirname, '../images', filePath);
-    fs.unlink(filePath, err => console.log(err));
+    filePath && fs.unlink(filePath, err => console.log(err));
 }
 
 exports.validationError = (req, message, code) => {

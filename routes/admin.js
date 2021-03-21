@@ -38,7 +38,9 @@ router.post('/admin/login', adminController.login);
 ///                                    ///
 //////////////////////////////////////////
 
-router.get('/bakers', isAuth, adminController.getBakers);
+router.get('/bakers', isAuth, adminController.getVerifiedBakers);
+
+router.get('/rawbakers', isAuth, adminController.getBakers);
 
 router.get('/bakers/:bakerId', isAuth, adminController.getBaker)
 
@@ -54,11 +56,11 @@ router.post(
     adminController.createBaker
 );
 
-router.put('/bakers/suspend/:bakerId', isAuth, adminController.suspendBaker);
+router.put('/baker/suspend/:bakerId', isAuth, adminController.suspendBaker);
 
-router.put('/bakers/verify/:bakerId', isAuth, adminController.verifyBaker);
+router.put('/baker/verify/:bakerId', isAuth, adminController.verifyBaker);
 
-router.delete('/bakers/:bakerId',  isAuth, adminController.deleteBaker);
+router.delete('/baker/delete/:bakerId',  isAuth, adminController.deleteBaker);
 
 
 ///////////////////////////////////////////
@@ -72,8 +74,8 @@ router.get('/users', isAuth, adminController.getUsers);
 
 router.get('/users/:userId', isAuth, adminController.getUser);
 
-router.put('/users/suspend/:userId', isAuth, adminController.suspendUser);
+router.put('/user/suspend/:userId', isAuth, adminController.suspendUser);
 
-router.delete('/user/:userId', isAuth, adminController.deleteUser);
+router.delete('/user/delete/:userId', isAuth, adminController.deleteUser);
 
 module.exports = router;

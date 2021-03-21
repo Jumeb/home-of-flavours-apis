@@ -46,8 +46,6 @@ exports.login = (req, res, next) => {
     const password = req.body.password;
     let loadedUser;
 
-    console.log(idCardNumber, password);
-
     Baker.findOne({idCardNumber: idCardNumber})
         .then(baker => {
             if(!baker) {
@@ -56,7 +54,6 @@ exports.login = (req, res, next) => {
                 throw error;
             }
             loadedUser = baker;
-            console.log(baker)
             return bcrypt.compare(password, baker.password);
         })
         .then(isEqual => {
@@ -65,13 +62,26 @@ exports.login = (req, res, next) => {
                 error.statusCode = 401;
                 throw error;
             }
+
+            if (!loadedUser.verify) {
+                const error = new Error(`Mr/Miss, ${loadedUser.name}, your account is yet to be verified. Please reconvene in 4 working days.`);
+                error.statusCode = 401;
+                throw error;
+            }
+
+            if (loadedUser.suspend) {
+                const error = new Error(`Mr/Miss, ${loadedUser.name}, your account has been suspended. Please contact our support team.`);
+                error.statusCode = 402;
+                throw error;
+            }
+
             const token = jwt.sign({
-                email: loadedUser.email,
-                userId: loadedUser._id.toString(),
-                type: loadedUser.type,
-            },
-                'somesupersecret',
-                {expiresIn: '90d'}
+                    email: loadedUser.email,
+                    userId: loadedUser._id.toString(),
+                    type: loadedUser.type,
+                },
+                    'somesupersecret',
+                    {expiresIn: '90d'}
             );
             res.status(200)
                 .json({
@@ -170,7 +180,6 @@ exports.editBakerImages = (req, res, next) => {
             if (bakerImage !== baker.ceo_image) {
                 clearImage(baker.ceo_image);
             }
-            console.log('Hello, Je suis la')
             baker.company_image = logo;
             baker.ceo_image = bakerImage;
             return baker.save();

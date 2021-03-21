@@ -23,8 +23,9 @@ const userModel = new Schema({
         type: String,
         required: true,
     },
-    passwordConfirm: {
-        type: String,
+    ordered: {
+        type: Number,
+        default: 0
     },
     orders: {
         type: Number,

@@ -15,8 +15,6 @@ exports.register = (req, res, next) => {
     const telNo = req.body.tel;
     const password = req.body.password;
 
-    console.log(telNo)
-
     bcrypt.hash(password, 12)
         .then(hashedPassword => {
             const user = new User({
@@ -60,6 +58,13 @@ exports.login = (req, res, next) => {
                 error.statusCode = 401;
                 throw error;
             }
+
+            if (loadedUser.suspend) {
+                const error = new Error(`Mr/Miss, ${loadedUser.name}, your account has been suspended. Please contact our support team.`);
+                error.statusCode = 402;
+                throw error;
+            }
+
             const token = jwt.sign({
                 email: loadedUser.email,
                 userId: loadedUser._id.toString(),
@@ -89,11 +94,10 @@ exports.getCart = (req, res, next) => {
             path: 'cart.pastries.pastryId',
             populate: {
                 path: 'creator',
-                select: 'companyName name -_id '
+                select: 'companyName name suspend verify -_id '
             }
         })
         .then(user => {
-            console.log(user.cart, 'fetched');
             let obj = {};
             pastries = user.cart.pastries;
             const data = (cart) => {
@@ -112,6 +116,7 @@ exports.getCart = (req, res, next) => {
                 .json({
                     message: 'Success',
                     bakers: bakers,
+                    user: user.cart.pastries,
                 })
         })
 }
