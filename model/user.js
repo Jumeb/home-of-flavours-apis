@@ -82,7 +82,7 @@ const userModel = new Schema({
     ]
 })
 
-userModel.methods.like = (userId) => {
+userModel.methods.like = function  (userId) {
     const userIndex = this.likes.users.findIndex(ui => {
         return ui.userId.toString() === userId.toString();
     });
@@ -121,7 +121,7 @@ userModel.methods.like = (userId) => {
     return this.save();
 }
 
-userModel.methods.dislike = (userId) => {
+userModel.methods.dislike = function (userId) {
     const userIndex = this.likes.users.findIndex(ui => {
         return ui.userId.toString() === userId.toString();
     });
@@ -160,6 +160,24 @@ userModel.methods.dislike = (userId) => {
     return this.save();
 }
 
+userModel.methods.message = function (pastryId, message) {
+    const cartProductIndex = this.cart.pastries.findIndex(cp => {
+        return cp.pastryId.toString() === pastryId.toString(); 
+    });
+
+    const updatedCartItems = [...this.cart.pastries];
+
+    if (cartProductIndex >= 0) {
+        updatedCartItems[cartProductIndex].message = message;
+    }
+
+    const updatedCart = { 
+        pastries: updatedCartItems
+    };
+    this.cart = updatedCart; 
+    return this.save();
+}
+
 userModel.methods.addToCart = function (pastryId) {
     const cartProductIndex = this.cart.pastries.findIndex(cp => {
         return cp.pastryId.toString() === pastryId.toString(); 
@@ -188,18 +206,19 @@ userModel.methods.subFromCart = function (pastryId) {
         return cp.pastryId.toString() === pastryId.toString();
     });
     const updatedCartItems = [...this.cart.pastries];
-    
+    let quantity;
 
     if (cartProductIndex >= 0) {
         if (updatedCartItems[cartProductIndex].quantity > 0) {
             quantity = this.cart.pastries[cartProductIndex].quantity - 1;
             updatedCartItems[cartProductIndex].quantity = quantity;
-        } else if (updatedCartItems[cartProductIndex].quantity === 0) {
+        } 
+        if (updatedCartItems[cartProductIndex].quantity === 0) {
             updatedCartItems.splice(cartProductIndex, 1);
         }
     }
     const updatedCart = {
-        items: updatedCartItems
+        pastries: updatedCartItems
     };
     this.cart = updatedCart;
     return this.save();
