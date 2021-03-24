@@ -244,6 +244,7 @@ exports.likePastry = (req, res, next) => {
             return pastry.like(userId);
         })
         .then(result => {
+            console.log(result);
             res.status(200).json({message: 'Liked pastry', response: result})
         })
         .catch(err => {
