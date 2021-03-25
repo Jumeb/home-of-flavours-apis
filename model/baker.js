@@ -45,6 +45,9 @@ const bakerModel = new Schema({
     about: {
         type: String
     },
+    location: {
+        type: String,
+    },
     suspend: {
         type: Boolean,
         default: false
@@ -71,6 +74,15 @@ const bakerModel = new Schema({
             }
         }]
     },
+    followers: {
+         users: [{
+            userId: {
+                type: Schema.Types.ObjectId,
+                ref: 'User',
+                required: true
+            }
+        }]
+    },
     orders: {
         type: Number,
         default: 0,
@@ -85,7 +97,7 @@ const bakerModel = new Schema({
     }
 }, {timestamps: true});
 
-bakerModel.methods.like = (userId) => {
+bakerModel.methods.like = function (userId) {
     const userIndex = this.likes.users.findIndex(ui => {
         return ui.userId.toString() === userId.toString();
     });
@@ -124,7 +136,7 @@ bakerModel.methods.like = (userId) => {
     return this.save();
 }
 
-bakerModel.methods.dislike = (userId) => {
+bakerModel.methods.dislike = function (userId) {
     const userIndex = this.likes.users.findIndex(ui => {
         return ui.userId.toString() === userId.toString();
     });
@@ -159,6 +171,29 @@ bakerModel.methods.dislike = (userId) => {
 
     this.likes = updatedLikes;
     this.dislikes = updatedDislikes;
+
+    return this.save();
+}
+
+bakerModel.methods.follow = function (userId) {
+    const followerIndex = this.followers.users.findIndex(ui => {
+        return ui.userId.toString() === userId.toString();
+    })
+
+    const followers = [...this.followers.users];
+
+    if (followerIndex >= 0) {
+        followers.splice(followerIndex, 1);
+    }
+    if (followerIndex < 0) {
+        followers.push({ userId });
+    }
+
+    const updatedFollowers = {
+        users: followers,
+    }
+
+    this.followers = updatedFollowers;
 
     return this.save();
 }

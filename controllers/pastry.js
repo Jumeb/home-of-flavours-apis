@@ -2,7 +2,7 @@ const {validationResult} = require('express');
 const jwt = require('jsonwebtoken');
 
 const Pastry = require('../model/pastry');
-const {errorCode, clearImage, validationError} = require('../utils/utilities');
+const {errorCode, clearImage, validationError, authenticationError} = require('../utils/utilities');
 
 exports.getPastries = (req, res, next) => {
     validationError(req, 'An error occured', 422);
@@ -88,7 +88,7 @@ exports.createPastry = (req, res, next) => {
     validationError(req, 'An error occured', 422);
     
     if (!req.files.pastryImage) {
-        validationError(req, 'No Pastry Image provided', 401);
+        authenticationError('No Pastry Image provided', 401);
     }
     
     let image;
@@ -232,7 +232,6 @@ exports.deletePastry = (req, res, next) => {
         })
 }
 
-
 exports.likePastry = (req, res, next) => {
     validationError(req, 'An error occured', 422);
 
@@ -244,7 +243,6 @@ exports.likePastry = (req, res, next) => {
             return pastry.like(userId);
         })
         .then(result => {
-            console.log(result);
             res.status(200).json({message: 'Liked pastry', response: result})
         })
         .catch(err => {

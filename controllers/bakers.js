@@ -4,7 +4,7 @@ const jwt = require('jsonwebtoken');
 
 const Baker = require('../model/baker');
 const Order = require('../model/order');
-const {errorCode, clearImage, validationError} = require('../utils/utilities');
+const {errorCode, clearImage, validationError, authenticationError} = require('../utils/utilities');
 
 exports.register = (req, res, next) => {
     validationError(req, 'An error occured', 422);
@@ -102,16 +102,17 @@ exports.editBaker = (req, res, next) => {
         error.statusCode = 422;
         throw error;
     }
-
     const bakerId = req.params.bakerId;
 
     const name = req.body.name;
-    const companyName = req.body.companyName;
+    const company = req.body.company;
     const categories = req.body.categories;
-    const idCardNumber = req.body.idCardNumber;
     const about = req.body.about;
-    const momoNumber = req.body.momoNumber;
-    const telNumber = req.body.telNumber;
+    const momo = req.body.momo;
+    const contact = req.body.contact;
+    const email = req.body.email;
+    const momoName = req.body.momoName;
+    const location = req.body.location;
 
     Baker.findById(bakerId)
         .then(baker =>{
@@ -121,13 +122,15 @@ exports.editBaker = (req, res, next) => {
                 throw error;
             }
 
-            baker.name = name;
-            baker.categories = categories;
-            baker.idCardNumber = idCardNumber;
-            baker.about = about;
-            baker.telNumber = telNumber;
-            baker.companyName = companyName;
-            baker.momoNumber = momoNumber;
+            baker.name = name || baker.name;
+            baker.categories = categories.length >= 1 ? baker.categories : categories;
+            baker.about = about || baker.about;
+            baker.telNumber = contact || baker.telNumber;
+            baker.companyName = company || baker.companyName;
+            baker.momoNumber = momo || baker.momoNumber;
+            baker.momoName = momoName || baker.momoName;
+            baker.location = location || baker.location;
+            baker.email = email || baker.email;
 
             return baker.save();
         })
@@ -249,4 +252,68 @@ exports.orderStatus = (req, res, next) => {
         .catch(err => {
             errorCode(err, 500, next);
         })
+}
+
+exports.likeBaker = (req, res, next) => {
+    validationError(req, 'An error has occured', 422);
+
+    const bakerId = req.params.bakerId;
+    const userId = req.query.user;
+
+    Baker.findById(bakerId)
+        .then(baker => {
+            if (!baker) {
+                authenticationError('Baker was not found', 401);
+            }
+            return baker.like(userId);
+        })
+        .then(result => {
+            res.status(200).json({ message: 'Succes', baker: result });
+        })
+        .catch(err => {
+            errorCode(err, 500, next);
+    })
+}
+
+exports.dislikeBaker = (req, res, next) => {
+    validationError(req, 'An error occured', 442);
+
+    const bakerId = req.params.bakerId;
+    const userId = req.query.user;
+
+    Baker.findById(bakerId)
+        .then(baker => {
+            if (!baker) {
+                authenticationError('Baker was not found', 401);
+            }
+            return baker.dislike(userId);
+        })
+        .then(result => {
+            res.status(200).json({ message: 'Succes', baker: result });
+        })
+        .catch(err => {
+            errorCode(err, 500, next);
+    })
+}
+
+
+exports.followBaker = (req, res, next) => {
+    validationError(req, 'An error occured', 442);
+
+    const bakerId = req.params.bakerId;
+    const userId = req.query.user;
+
+    Baker.findById(bakerId)
+        .then(baker => {
+            if (!baker) {
+                authenticationError('Baker was not found', 401);
+            }
+            return baker.follow(userId);
+        })
+        .then(result => {
+            res.status(200).json({ message: 'Succes', baker: result });
+        })
+        .catch(err => {
+            errorCode(err, 500, next);
+    })
 }

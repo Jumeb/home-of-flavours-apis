@@ -35,10 +35,16 @@ router.post('/baker/register', [
 
 router.post('/baker/login', bakersController.login);
 
+router.post('/baker/like/:bakerId', bakersController.likeBaker);
+
+router.post('/baker/dislike/:bakerId', bakersController.dislikeBaker);
+
+router.post('/baker/follow/:bakerId', bakersController.followBaker);
+
 router.put('/bakers/images/:bakerId',  isAuth, bakersController.editBakerImages)
 
-router.put('/bakers/profile/:bakerId',  isAuth, bakersController.editBaker);
+router.put('/baker/profile/:bakerId', isAuth, bakersController.editBaker);
 
-router.delete('/bakers/:bakerId',  isAuth, bakersController.deleteBaker);
+router.delete('/bakers/:bakerId', isAuth, bakersController.deleteBaker);
 
 module.exports = router;
