@@ -123,7 +123,7 @@ exports.editBaker = (req, res, next) => {
             }
 
             baker.name = name || baker.name;
-            baker.categories = categories.length >= 1 ? baker.categories : categories;
+            baker.categories = categories.length >= 1 ? categories : baker.categories;
             baker.about = about || baker.about;
             baker.telNumber = contact || baker.telNumber;
             baker.companyName = company || baker.companyName;
