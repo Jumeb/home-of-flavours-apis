@@ -155,8 +155,6 @@ exports.editBakerImages = (req, res, next) => {
     let ceoImage;
     let companyImage;
 
-    const images = req.files;
-    console.log(images)
     if (req.files.logo) {
         companyImage = req.files.logo[0].path;
     }
@@ -291,7 +289,6 @@ exports.dislikeBaker = (req, res, next) => {
             errorCode(err, 500, next);
     })
 }
-
 
 exports.followBaker = (req, res, next) => {
     validationError(req, 'An error occured', 442);

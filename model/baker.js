@@ -83,10 +83,21 @@ const bakerModel = new Schema({
             }
         }]
     },
+    coupons: {
+        coupon: [{
+            code: {
+                type: String,
+                required: true,
+            },
+            percentage: {
+                type: Number,
+                required: true,
+            }
+        }]
+    },
     orders: {
         type: Number,
         default: 0,
-    },
     total: {
         type: Number,
         default: 0
