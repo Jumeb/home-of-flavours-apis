@@ -24,9 +24,8 @@ const {fileStorage, fileFilter} = require('./utils/utilities');
 
 const MONGODB_URI = 'mongodb://localhost:27017/CaraCakes';
 const fields = [
-    {name: 'userImage'},
+    {name: 'image'},
     {name: 'logo'},
-    {name: 'bakerImage'},
     {name: 'pastryImage'},
 ]
 

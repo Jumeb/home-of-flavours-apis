@@ -152,21 +152,17 @@ exports.editBakerImages = (req, res, next) => {
 
     const bakerId = req.params.bakerId;
 
-    //You can parse the image as text in hidden inputs
-    let bakerImage = req.body.bakerImage;
-    let logo = req.body.logo;
+    let ceoImage;
+    let companyImage;
 
     const images = req.files;
-
-    if (images) {
-        logo = images.logo[0].path;
-        bakerImage = images.bakerImage[0].path;
+    console.log(images)
+    if (req.files.logo) {
+        companyImage = req.files.logo[0].path;
     }
 
-    if (!logo || !bakerImage) {
-        const error = new Error('Image missing');
-        error.statusCode = 422;
-        throw error;
+    if (req.files.image) {
+        ceoImage = req.files.image[0].path;
     }
 
     Baker.findById(bakerId)
@@ -176,15 +172,15 @@ exports.editBakerImages = (req, res, next) => {
                 error.statusCode = 422;
                 throw error;
             }
-            if (logo !== baker.company_image) {
-                clearImage(baker.company_image);
+            if (companyImage !== baker.companyImage) {
+                clearImage(baker.companyImage);
             }
 
-            if (bakerImage !== baker.ceo_image) {
-                clearImage(baker.ceo_image);
+            if (ceoImage !== baker.ceoImage) {
+                clearImage(baker.ceoImage);
             }
-            baker.company_image = logo;
-            baker.ceo_image = bakerImage;
+            baker.companyImage = companyImage;
+            baker.ceoImage = ceoImage;
             return baker.save();
         })
         .then(result => {

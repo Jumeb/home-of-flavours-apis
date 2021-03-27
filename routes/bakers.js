@@ -41,7 +41,7 @@ router.post('/baker/dislike/:bakerId', bakersController.dislikeBaker);
 
 router.post('/baker/follow/:bakerId', bakersController.followBaker);
 
-router.put('/bakers/images/:bakerId',  isAuth, bakersController.editBakerImages)
+router.put('/baker/images/:bakerId',  isAuth, bakersController.editBakerImages)
 
 router.put('/baker/profile/:bakerId', isAuth, bakersController.editBaker);
 
