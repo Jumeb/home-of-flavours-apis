@@ -99,7 +99,7 @@ exports.getCart = (req, res, next) => {
       path: "cart.pastries.pastryId",
       populate: {
         path: "creator",
-        select: "companyName name suspend verify -_id ",
+        select: "companyName name suspend verify",
       },
     })
     .then((user) => {

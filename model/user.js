@@ -23,13 +23,14 @@ const userModel = new Schema({
         type: String,
         required: true,
     },
-    ordered: {
-        type: Number,
-        default: 0
-    },
     orders: {
-        type: Number,
-        default: 0,
+        ordered: [{
+            orderId: {
+                type: Schema.Types.ObjectId,
+                ref: 'Order',
+                required: true,
+            }
+        }]
     },
     dislikes: {
         users: [{
@@ -48,11 +49,6 @@ const userModel = new Schema({
                 required: true
             },
         }]
-    },
-    total: {
-        type: Number,
-        required: false,
-        default: 0,
     },
     suspend: {
         type: Boolean,
@@ -82,7 +78,7 @@ const userModel = new Schema({
     ]
 })
 
-userModel.methods.like = function  (userId) {
+userModel.methods.like = function (userId) {
     const userIndex = this.likes.users.findIndex(ui => {
         return ui.userId.toString() === userId.toString();
     });
@@ -224,7 +220,7 @@ userModel.methods.subFromCart = function (pastryId) {
     return this.save();
 }
 
-userModel.methods.removeFromCart = function(pastryId) {
+userModel.methods.removeFromCart = function (pastryId) {
     const updatedCartItems = this.cart.pastries.filter(item => {
         return item.pastryId.toString() !== pastryId.toString();
     });
@@ -233,8 +229,17 @@ userModel.methods.removeFromCart = function(pastryId) {
     return this.save();
 }
 
-userModel.methods.clearCart = function(notOrdered) {
+userModel.methods.clearCart = function (notOrdered, orderId) {
     this.cart.pastries = notOrdered
+    const ordered = [...this.orders.ordered];
+    ordered.push({
+        orderId
+    })
+
+    const updatedOrders = {
+        ordered
+    }
+    this.orders = updatedOrders;
     return this.save();
 }
 

@@ -96,12 +96,13 @@ const bakerModel = new Schema({
         }]
     },
     orders: {
-        type: Number,
-        default: 0,
-    },
-    total: {
-        type: Number,
-        default: 0
+        ordered: [{
+            orderId: {
+                type: Schema.Types.ObjectId,
+                ref: 'Order',
+                required: true,
+            }
+        }]
     },
     password: {
         type: String,
@@ -207,6 +208,19 @@ bakerModel.methods.follow = function (userId) {
 
     this.followers = updatedFollowers;
 
+    return this.save();
+}
+
+bakerModel.methods.ordered = function (orderId) {
+    const ordered = [...this.orders.ordered];
+    ordered.push({
+        orderId
+    })
+
+    const updatedOrders = {
+        ordered
+    }
+    this.orders = updatedOrders;
     return this.save();
 }
 

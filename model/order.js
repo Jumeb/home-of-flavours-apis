@@ -8,10 +8,20 @@ const orderModel = new Schema({
         ref: 'User',
         require: true,
     },
-    cartId: {
-        type: Schema.Types.ObjectId,
-        ref: 'Cart',
-    },
+    pastries: [{
+        pastryId: {
+            type: Schema.Types.ObjectId,
+            ref: 'Pastry',
+            required: true
+        },
+        quantity: {
+            type: Number,
+            required: true
+        },
+        message: {
+            type: String,
+        }
+    }],
     eventId: {
         type: Schema.Types.ObjectId,
         ref: 'Event',
