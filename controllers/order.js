@@ -82,7 +82,7 @@ exports.createBasket = (req, res, next) => {
         })   
 }
 
-exports.getOrders = (req, res, next) => {
+exports.getSuperOrders = (req, res, next) => {
     validationError(req, 'An error occured', 422);
 
     Order.find()
@@ -124,4 +124,42 @@ exports.getOrder = (req, res, next) => {
         .catch(err => {
             errorCode(err, 500, next);
         })
+}
+
+exports.getMyOrders = (req, res, next) => {
+    validationError(req, 'An error occured', 422);
+
+    const userId = req.params.userId;
+    let _orders, obj = {};
+
+    Order.find({ userId })
+        .populate({
+            path: "pastries.pastryId",   
+        })
+        .populate({
+            path: 'bakerId',
+            select: 'companyName name suspend verify momoNumber coupons'
+        })
+        .then(orders => {
+            if (!orders) {
+                authenticationError(req, 'Orders not found', 401);
+            }
+            _orders = orders;
+            const data = (orders) => {
+                orders.map((i) => {
+                let _baker = i.bakerId.companyName.toString();
+                if (obj[_baker] === undefined) {
+                    obj[_baker] = [i];
+                } else {
+                    obj[_baker].push(i);
+                }
+                });
+                return obj;
+            };
+            let bakerOrders = data(_orders);
+            res.status(200).json({message:'All you orders', orders: bakerOrders})
+        })
+        .catch(err => {
+            errorCode(err, 500, next);
+    })
 }
