@@ -86,6 +86,17 @@ exports.getSuperOrders = (req, res, next) => {
     validationError(req, 'An error occured', 422);
 
     Order.find()
+        .populate({
+            path: "pastries.pastryId",   
+        })
+        .populate({
+            path: 'bakerId',
+            select: 'companyName'
+        })
+        .populate({
+            path: 'userId',
+            select: 'name'
+        })
         .then(orders => {
             if(!orders) {
                 const error = new Error('Could not find any orders');
@@ -95,7 +106,7 @@ exports.getSuperOrders = (req, res, next) => {
             res.status(200)
                 .json({
                     message: 'Fetched orders successfully',
-                    orders: orders,
+                    orders
                 })
         })
         .catch(err => {
@@ -162,4 +173,63 @@ exports.getMyOrders = (req, res, next) => {
         .catch(err => {
             errorCode(err, 500, next);
     })
+}
+
+exports.getBakerOrders = (req, res, next) => {
+    validationError(req, 'An error occured', 422);
+
+    const bakerId = req.params.bakerId;
+
+    Order.find({ bakerId })
+        .populate({
+            path: "pastries.pastryId",   
+        })
+        .populate({
+            path: 'userId',
+            select: 'name suspend image'
+        })
+        .then(orders => {
+            if (!orders) {
+                authenticationError(req, 'Orders not found', 401);
+            }
+            res.status(200).json({message:'All you orders', orders})
+        })
+        .catch(err => {
+            errorCode(err, 500, next);
+    })
+}
+
+exports.incStatus = (req, res, next) => {
+    validationError(req, 'An error occured', 422);
+
+    const orderId = req.params.orderId;
+
+    let status = '';
+
+    Order.findById(orderId)
+        .then(order => {
+            if (!order) {
+                authenticationError(req, 'Order was not found', 401);
+            }
+            if (order.status === 'New') {
+                status = 'Registered';
+            }
+            if (order.status === 'Registered') {
+                status = 'Processing';
+            }
+            if (order.status === 'Processing') {
+                status = 'On the Way';
+            }
+
+            order.status = status;
+
+            return order.save();
+        })
+        .then(order => {
+            res.status(200).json({message: 'Success', order})
+        })
+        .catch(err => {
+            errorCode(err, 500, next);
+    })
+
 }
