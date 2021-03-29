@@ -372,7 +372,7 @@ exports.suspendUser = (req, res, next) => {
         .then(result => {
             res.status(200)
                 .json({
-                    message: 'User suspended',
+                    message: result.suspend ? 'User suspended' : 'User unsuspended',
                     user: result,
                 })
         })

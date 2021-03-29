@@ -18,6 +18,8 @@ router.post('/create/basket/:eventId', isAuth, orderController.createBasket);
 
 router.put('/order/status/:orderId', orderController.incStatus);
 
+router.put('/order/delivered/:orderId', orderController.deliveredStatus);
+
 
 
 module.exports = router;
