@@ -38,7 +38,7 @@ router.post('/admin/login', adminController.login);
 ///                                    ///
 //////////////////////////////////////////
 
-router.get('/bakers', isAuth, adminController.getVerifiedBakers);
+router.get('/bakers', adminController.getVerifiedBakers);
 
 router.get('/rawbakers', isAuth, adminController.getBakers);
 

@@ -15,7 +15,7 @@ router.post('/baker/register', [
             return Baker.findOne({email: value})
             .then(bakerDoc => {
                 if(bakerDoc) {
-                    return Promise.reject('E-mail is already in use.');
+                    return Promise.reject('E-mail is already is use.');
                 }
             });
         })
