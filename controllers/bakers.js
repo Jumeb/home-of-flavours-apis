@@ -182,7 +182,7 @@ exports.editBakerImages = (req, res, next) => {
             return baker.save();
         })
         .then(result => {
-            res.status(200).json({message: 'Image successfullly updated', baker: result})
+            res.status(200).json({message: 'Image successfully updated', baker: result})
         })
         .catch(err => {
             errorCode(err, 500, next);

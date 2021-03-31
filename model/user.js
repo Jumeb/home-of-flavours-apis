@@ -54,6 +54,9 @@ const userModel = new Schema({
         type: Boolean,
         default: false,
     },
+    location: {
+        type: String,
+    },
     cart: {
         pastries: [{
             pastryId: {

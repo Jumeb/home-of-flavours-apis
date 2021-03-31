@@ -8,8 +8,9 @@ const {
   errorCode,
   clearImage,
   validationError,
+  authenticationError,
 } = require("../utils/utilities");
-const { populate } = require("../model/pastry");
+const baker = require("../model/baker");
 
 exports.register = (req, res, next) => {
   validationError(req, "Validation failed, entered data is incorrect", 422);
@@ -208,4 +209,66 @@ exports.removeFromCart = (req, res, next) => {
     .catch((err) => {
       errorCode(err, 500, next);
     });
+};
+
+exports.editUser = (req, res, next) => {
+  validationError(req, 'An error occured', 422);
+
+  const userId = req.params.userId;
+
+  const { name, email, contact, location } = req.body;
+
+  console.log(name, email);
+
+  User.findById(userId)
+    .then(user => {
+      if (!user) {
+        authenticationError('User not found.', 404);
+      }
+      
+      user.name = name || user.name;
+      user.email = email || user.email;
+      user.telNumber = contact || user.telNumber;
+      user.location = location || user.location;
+
+      return user.save();
+    })
+    .then(user => {
+      res.status(200).json({ message: 'Successfully updated profile', user });
+    })
+    .catch(err => {
+      errorCode(err, 500, next);
+    })
+
+};
+
+exports.editUserImage = (req, res, next) => {
+  validationError(req, 'An error occured', 422);
+
+  const userId = req.params.userId;
+
+  let image;
+
+  if (req.files.image) {
+    image = req.files.image[0].path;
+  }
+
+  User.findById(userId)
+    .then(user => {
+      if (!user) {
+        authenticationError('User not found', 404);
+      }
+      if (image !== user.image) {
+        clearImage(user.image);
+      }
+
+      user.image = image;
+      return user.save();
+    })
+    .then(user => {
+      res.status(200).json({ message: 'Image successfully updated', user });
+    })
+    .catch(err => {
+      errorCode(err, 500, next);
+    })
 };

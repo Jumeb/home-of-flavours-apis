@@ -38,4 +38,8 @@ router.post("/user/removeFromCart/:pastryId", userController.removeFromCart);
 
 router.post("/user/message/:pastryId", userController.pastryMessage);
 
+router.put("/user/image/:userId", userController.editUserImage);
+
+router.put("/user/profile/:userId", userController.editUser);
+
 module.exports = router;
