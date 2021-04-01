@@ -203,6 +203,7 @@ exports.incStatus = (req, res, next) => {
     validationError(req, 'An error occured', 422);
 
     const orderId = req.params.orderId;
+    const total = req.query.total;
 
     let status = 'On the Way';
 
@@ -220,13 +221,28 @@ exports.incStatus = (req, res, next) => {
             if (order.status === 'Processing') {
                 status = 'On the Way';
             }
+            if (order.status === 'Delivered') {
+                status = 'Confirmed';
+            }
 
             order.status = status;
 
             return order.save();
         })
         .then(order => {
-            res.status(200).json({ message: 'Success', order })
+            res.status(200).json({ message: 'Success', order });
+            if (order.status === 'Confirmed') {
+                Baker.findById(order.bakerId)
+                    .then(baker => {
+                        if (!baker) {
+                            authenticationError(req, 'Baker not found', 401);
+                        }
+                        baker.setTotal(total);
+                    })
+                    .catch(err => {
+                        errorCode(err, 500, next);
+                    });
+            }
         })
         .catch(err => {
             errorCode(err, 500, next);
@@ -238,6 +254,7 @@ exports.deliveredStatus = (req, res, next) => {
     validationError(req, 'An error occured', 422);
 
     const orderId = req.params.orderId;
+    const total = req.query.total;
 
     let status = '';
 
@@ -255,6 +272,18 @@ exports.deliveredStatus = (req, res, next) => {
         })
         .then(order => {
             res.status(200).json({ message: 'Success', order });
+            if (order.status === 'Delivered') {
+                User.findById(order.userId)
+                    .then(user => {
+                        if (!user) {
+                            authenticationError(req, 'User not found', 401);
+                        }
+                        user.setTotal(total);
+                    })
+                    .catch(err => {
+                        errorCode(err, 500, next);
+                    });
+            }
         })
         .catch(err => {
             errorCode(err, 500, next);

@@ -221,6 +221,14 @@ exports.editUser = (req, res, next) => {
   console.log(name, email);
 
   User.findById(userId)
+    .populate({
+      path: 'orders.ordered.orderId',
+      select: 'pastries status',
+      populate: {
+        path: 'pastries.pastryId',
+        select: 'price discount',
+      }
+    })
     .then(user => {
       if (!user) {
         authenticationError('User not found.', 404);
@@ -254,6 +262,14 @@ exports.editUserImage = (req, res, next) => {
   }
 
   User.findById(userId)
+    .populate({
+      path: 'orders.ordered.orderId',
+      select: 'pastries status',
+      populate: {
+        path: 'pastries.pastryId',
+        select: 'price discount',
+      }
+    })
     .then(user => {
       if (!user) {
         authenticationError('User not found', 404);

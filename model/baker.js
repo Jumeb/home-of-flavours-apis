@@ -83,6 +83,10 @@ const bakerModel = new Schema({
             }
         }]
     },
+    total: {
+        type: Number,
+        default: 0,
+    },
     coupons: {
         coupon: [{
             code: {
@@ -221,6 +225,11 @@ bakerModel.methods.ordered = function (orderId) {
         ordered
     }
     this.orders = updatedOrders;
+    return this.save();
+}
+
+bakerModel.methods.setTotal = function (total) {
+    this.total += Number(total);
     return this.save();
 }
 

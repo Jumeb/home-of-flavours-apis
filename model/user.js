@@ -32,6 +32,10 @@ const userModel = new Schema({
             }
         }]
     },
+    total: {
+        type: Number,
+        default: 0,
+    },
     dislikes: {
         users: [{
             userId: {
@@ -243,6 +247,11 @@ userModel.methods.clearCart = function (notOrdered, orderId) {
         ordered
     }
     this.orders = updatedOrders;
+    return this.save();
+}
+
+userModel.methods.setTotal = function (total) {
+    this.total += Number(total);
     return this.save();
 }
 
