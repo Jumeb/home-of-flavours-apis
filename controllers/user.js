@@ -288,3 +288,39 @@ exports.editUserImage = (req, res, next) => {
       errorCode(err, 500, next);
     })
 };
+
+exports.likeUser = (req, res, next) => {
+    validationError(req, 'An error occured', 422);
+
+    const userId = req.params.userId;
+    const bakerId = req.query.baker
+
+    User.findById(userId)
+        .then(user => {
+            return user.like(bakerId);
+        })
+        .then(result => {
+            res.status(200).json({message: 'Liked user', response: result})
+        })
+        .catch(err => {
+            res.status(500).json({message: 'Unsuccessful!'})
+        })
+}
+
+exports.disLikeUser = (req, res, next) => {
+    validationError(req, 'An error occured', 422);
+
+    const userId = req.params.userId;
+    const bakerId = req.query.baker
+
+    User.findById(userId)
+        .then(user => {
+            return user.dislike(bakerId);
+        })
+        .then(result => {
+            res.status(200).json({message: 'Dislked user', response: result})
+        })
+        .catch(err => {
+            res.status(500).json({message: 'Unsuccessful!'})
+        })
+}

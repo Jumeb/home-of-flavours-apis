@@ -101,12 +101,12 @@ userModel.methods.like = function (userId) {
     }
 
     if (_userIndex >= 0) {
-        dislikeData.splice(userIndex, 1);
+        dislikeData.splice(_userIndex, 1);
     }
 
     if (userIndex < 0) {
         likeData.push({
-            userId: userId,
+            userId,
         })
     }
 
@@ -140,12 +140,12 @@ userModel.methods.dislike = function (userId) {
     }
 
     if (_userIndex >= 0) {
-        dislikeData.splice(userIndex, 1);
+        dislikeData.splice(_userIndex, 1);
     }
 
     if (_userIndex < 0) {
         dislikeData.push({
-            userId: userId,
+            userId,
         })
     }
 

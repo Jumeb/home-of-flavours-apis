@@ -38,6 +38,10 @@ router.post("/user/removeFromCart/:pastryId", userController.removeFromCart);
 
 router.post("/user/message/:pastryId", userController.pastryMessage);
 
+router.post('/user/like/:userId', userController.likeUser);
+
+router.post('/user/dislike/:userId', userController.disLikeUser);
+
 router.put("/user/image/:userId", userController.editUserImage);
 
 router.put("/user/profile/:userId", userController.editUser);
