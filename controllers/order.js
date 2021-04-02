@@ -95,7 +95,7 @@ exports.getSuperOrders = (req, res, next) => {
         })
         .populate({
             path: 'userId',
-            select: 'name suspend image'
+            select: 'name suspend image likes dislikes'
         })
         .then(orders => {
             if (!orders) {
