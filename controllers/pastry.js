@@ -132,11 +132,15 @@ exports.editPastry = (req, res, next) => {
 
     const pastryId = req.params.pastryId;
 
-    const name = req.body.name;
-    const price = req.body.price;
-    const description = req.body.description;
-    const discount = req.body.discount;
-    const recipe = req.body.recipe;
+    const { name, price, about, discount, recipe, creator } = req.body;
+
+    let image;
+    
+    if (req.files.pastryImage) {
+        image = req.files.pastryImage[0].path;
+    }
+
+    console.log(image);
 
     Pastry.findById(pastryId)
         .then(pastry => {
@@ -144,23 +148,29 @@ exports.editPastry = (req, res, next) => {
                 const error = new Error('Could not find pastry')
                 error.statusCode = 422;
                 throw error;
-            }
+          }
+            
             pastry.name = name;
             pastry.price = price;
-            pastry.description = description;  
+            pastry.description = about;  
             pastry.discount = discount;
             pastry.recipe = recipe;
+            if (image && image !== pastry.image) {
+                clearImage(pastry.image);
+                pastry.image = image;
+            }
+
             return pastry.save();
         })
         .then(result => {
-            res.status(200)
+            res.status(201)
                 .json({
                     message: 'Successfully updated',
                     pastry: result
                 })
         })
         .catch(err => {
-            errorCode(err, 500);
+            errorCode(err, 500, next);
         })
 }
 

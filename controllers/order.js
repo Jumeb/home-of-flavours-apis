@@ -224,6 +224,9 @@ exports.incStatus = (req, res, next) => {
             if (order.status === 'Delivered') {
                 status = 'Confirmed';
             }
+            if (order.status === 'Confirmed') {
+                return 'Done';
+            }
 
             order.status = status;
 

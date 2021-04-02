@@ -42,6 +42,8 @@ router.get('/bakers', adminController.getVerifiedBakers);
 
 router.get('/rawbakers', isAuth, adminController.getBakers);
 
+router.get('/allbakers', isAuth, adminController.getAllBakers);
+
 router.get('/bakers/:bakerId', isAuth, adminController.getBaker)
 
 router.post(
@@ -71,6 +73,8 @@ router.delete('/baker/delete/:bakerId',  isAuth, adminController.deleteBaker);
 
 
 router.get('/users', isAuth, adminController.getUsers);
+
+router.get('/allusers', isAuth, adminController.getAllUsers);
 
 router.get('/users/:userId', isAuth, adminController.getUser);
 

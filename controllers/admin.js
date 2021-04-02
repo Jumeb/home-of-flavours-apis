@@ -153,6 +153,16 @@ exports.getBakers = (req, res, next) => {
         })
 }
 
+exports.getAllBakers = (req, res, next) => {
+    Baker.find()
+        .then(bakers => {
+            res.status(200).json({ message: "Fetched Bakers", bakers });
+        })
+        .catch(err => {
+            errorCode(err, 500, next);
+        })
+};
+
 exports.getVerifiedBakers = (req, res, next) => {
     const currentPage = req.query.page || 1;
     const perPage = 18;
@@ -301,6 +311,16 @@ exports.getUsers = (req, res, next) => {
         })
         .then(users => {
             res.status(200).json({message: "Fetched Bakers", users: users, totalItems: totalItems})
+        })
+        .catch(err => {
+            errorCode(err, 500)
+        })
+}
+
+exports.getAllUsers = (req, res, next) => {
+    User.find()
+        .then(users => {
+            res.status(200).json({ message: "Fetched Bakers", users })
         })
         .catch(err => {
             errorCode(err, 500)

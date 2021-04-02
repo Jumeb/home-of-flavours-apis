@@ -10,16 +10,16 @@ router.get('/bakerpastries/:bakerId', pastryController.getPastries);
 
 router.get('/pastries/:pastryId', pastryController.getPastry);
 
-router.post('/create/pastry',  pastryController.createPastry);
+router.post('/pastry/create',  pastryController.createPastry);
 
 router.put('/pastries/images/:pastryId', pastryController.editPastryImage);
 
-router.put('/pastries/profile/:pastryId', pastryController.editPastry);
+router.put('/pastry/edit/:pastryId', pastryController.editPastry);
 
 router.post('/pastry/like/:pastryId', pastryController.likePastry);
 
 router.post('/pastry/dislike/:pastryId', pastryController.disLikePastry);
 
-router.delete('/pastries/:pastryId', pastryController.deletePastry)
+router.delete('/pastry/delete/:pastryId', pastryController.deletePastry)
 
 module.exports = router;
