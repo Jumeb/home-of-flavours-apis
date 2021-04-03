@@ -59,7 +59,22 @@ app.use((error, req, res, next) => {
     res.status(status).json({message: message, data: data})
 })
 
-mongoose.connect(MONGODB_URI, {useNewUrlParser: true, useUnifiedTopology: true})
+mongoose.connect(MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+    .then(result => {
+        Admin.findOne()
+            .then(admin => {
+                if (!admin) {
+                    bcrypt.hash('1234567', 12).then(hashPassword => {
+                        const admin = new Admin({
+                            name: 'JBInc',
+                            password: hashPassword,
+                            email: 'bricejume@gmail.com'
+                        });
+                        admin.save();
+                    })
+                }
+            })
+    })
     .then(result => {
         const server = app.listen(8081);
         const io = require('socket.io')(server);

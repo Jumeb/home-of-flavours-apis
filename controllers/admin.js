@@ -45,11 +45,13 @@ exports.register = (req, res, next) => {
 exports.login = (req, res, next) => {
     validationError(req, 'An error occured', 422);
 
-    const user = req.body.user;
+    const email = req.body.email;
     const password = req.body.password;
     let loadedAdmin;
 
-    Admin.findOne({name: user} || {email: user})
+    console.log(password);
+
+    Admin.findOne({email})
         .then(admin => {
             if(!admin) {
                 const error = new Error('Admin not registered');
@@ -68,7 +70,7 @@ exports.login = (req, res, next) => {
             const token = jwt.sign({
                 email:loadedAdmin.email,
                 userId: loadedAdmin._id.toString(),
-                name: loadedUser.name,
+                name: loadedAdmin.name,
             }, 
                 'somesupersecret',
                 {expiresIn: '90d'}
@@ -76,7 +78,7 @@ exports.login = (req, res, next) => {
             res.status(200)
                 .json({
                     token: token, 
-                    userId: loadedAdmin._id.toString(),
+                    user: loadedAdmin,
                 })
         })
         .catch(err => {
