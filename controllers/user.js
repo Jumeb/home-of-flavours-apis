@@ -218,8 +218,6 @@ exports.editUser = (req, res, next) => {
 
   const { name, email, contact, location } = req.body;
 
-  console.log(name, email);
-
   User.findById(userId)
     .populate({
       path: 'orders.ordered.orderId',

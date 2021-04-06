@@ -8,7 +8,7 @@ exports.getPastries = (req, res, next) => {
     validationError(req, 'An error occured', 422);
     const bakerId = req.params.bakerId;
     const currentPage = req.query.page || 1;
-    const perPage = 18;
+    const perPage = 50;
     let totalItems;
 
     Pastry.find({creator: bakerId})
@@ -36,7 +36,7 @@ exports.getSuperPastries = (req, res, next) => {
     validationError(req, 'An error occured', 422);
 
     const currentPage = req.query.page || 1;
-    const perPage = 18;
+    const perPage = 50;
     let totalItems;
 
     Pastry.find()
@@ -139,8 +139,6 @@ exports.editPastry = (req, res, next) => {
     if (req.files.pastryImage) {
         image = req.files.pastryImage[0].path;
     }
-
-    console.log(image);
 
     Pastry.findById(pastryId)
         .then(pastry => {

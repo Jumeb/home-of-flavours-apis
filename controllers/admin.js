@@ -49,8 +49,6 @@ exports.login = (req, res, next) => {
     const password = req.body.password;
     let loadedAdmin;
 
-    console.log(password);
-
     Admin.findOne({email})
         .then(admin => {
             if(!admin) {
@@ -135,7 +133,7 @@ exports.createBaker = (req, res, next) => {
 
 exports.getBakers = (req, res, next) => {
     const currentPage = req.query.page || 1;
-    const perPage = 18;
+    const perPage = 50;
     let totalItems;
     Baker.find()
         .sort({name: 'asc'})
@@ -167,7 +165,7 @@ exports.getAllBakers = (req, res, next) => {
 
 exports.getVerifiedBakers = (req, res, next) => {
     const currentPage = req.query.page || 1;
-    const perPage = 18;
+    const perPage = 50;
     let totalItems;
     Baker.find()
         .sort({name: 'asc'})
@@ -301,7 +299,7 @@ exports.deleteBaker = (req, res, next) => {
 
 exports.getUsers = (req, res, next) => {
     const currentPage = req.query.page || 1;
-    const perPage = 18;
+    const perPage = 50;
     let totalItems;
     User.find()
         .countDocuments()
