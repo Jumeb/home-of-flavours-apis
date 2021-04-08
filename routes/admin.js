@@ -31,6 +31,10 @@ router.post('/admin/register', [
 
 router.post('/admin/login', adminController.login);
 
+router.put('/admin/updateprofile/:adminId', isAuth, adminController.updateProfile);
+
+router.put('/admin/changepassword/:adminId', isAuth, adminController.changePasswordAdmin);
+
 
 ///////////////////////////////////////////
 ///                                    ///
@@ -62,6 +66,8 @@ router.put('/baker/suspend/:bakerId', isAuth, adminController.suspendBaker);
 
 router.put('/baker/verify/:bakerId', isAuth, adminController.verifyBaker);
 
+router.put('/baker/changepassword/:bakerId', isAuth, adminController.changePasswordBaker);
+
 router.delete('/baker/delete/:bakerId',  isAuth, adminController.deleteBaker);
 
 
@@ -79,6 +85,8 @@ router.get('/allusers', isAuth, adminController.getAllUsers);
 router.get('/users/:userId', isAuth, adminController.getUser);
 
 router.put('/user/suspend/:userId', isAuth, adminController.suspendUser);
+
+router.put('/user/changepassword/:userId', isAuth, adminController.changePasswordUser);
 
 router.delete('/user/delete/:userId', isAuth, adminController.deleteUser);
 

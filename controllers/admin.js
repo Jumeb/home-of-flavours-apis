@@ -6,7 +6,7 @@ const Baker = require('../model/baker');
 const User = require('../model/user');
 const Admin = require('../model/admin');
 const Order = require('../model/order');
-const { validationError, errorCode, clearImage } = require('../utils/utilities');
+const { validationError, errorCode, clearImage, authenticationError } = require('../utils/utilities');
 
 exports.register = (req, res, next) => {
     validationError(req, 'An error occured', 422);
@@ -83,6 +83,62 @@ exports.login = (req, res, next) => {
             errorCode(err, 500, next);
         })
 }
+
+exports.updateProfile = (req, res, next) => {
+    validationError(req, 'An error occured', 422);
+    const adminId = req.params.adminId;
+
+    const { name, contact, email } = req.body;
+
+    Admin.findById(adminId)
+        .then(admin => {
+            if (!admin) {
+                authenticationError('Admin not found', 422);
+            }
+            admin.name = name || admin.name;
+            admin.email = email || admin.email;
+            admin.telNumber = contact || admin.telNumber;
+            return admin.save();
+        })
+        .then(admin => {
+            res.status(200)
+                .json({ message: 'Successful', admin });
+        })
+        .catch(err => {
+            errorCode(err, 500, next);
+        })
+};
+
+exports.changePasswordAdmin = (req, res, next) => {
+    const adminId = req.params.adminId;
+
+    const { oldPassword, newPassword } = req.body;
+
+    Admin.findById(adminId)
+        .then(admin => {
+            bcrypt.compare(oldPassword, admin.password)
+                .then(isEqual => {
+                    if (!isEqual) {
+                        authenticationError('Password mismatch', 422);
+                    }
+                    bcrypt.hash(newPassword, 12)
+                        .then(hashedPassword => {
+                            admin.password = hashedPassword;
+                        })
+                    return admin.save();
+                })
+                .then(result => {
+                    res.status(200)
+                        .json({ message: 'Success', admin: result });
+                })
+                .catch(err => {
+                    errorCode(err, 500, next);
+                })
+        })
+        .catch(err => {
+            errorCode(err, 500, next);
+        });
+};
 
 
 ///////////////////////////////////////////
@@ -184,6 +240,37 @@ exports.getVerifiedBakers = (req, res, next) => {
             errorCode(err, 500, next);
         })
 }
+
+exports.changePasswordBaker = (req, res, next) => {
+    const bakerId = req.params.bakerId;
+
+    const { oldPassword, newPassword } = req.body;
+
+    Baker.findById(bakerId)
+        .then(baker => {
+            bcrypt.compare(oldPassword, baker.password)
+                .then(isEqual => {
+                    if (!isEqual) {
+                        authenticationError('Password mismatch', 422);
+                    }
+                    bcrypt.hash(newPassword, 12)
+                        .then(hashedPassword => {
+                            baker.password = hashedPassword;
+                        })
+                    return baker.save();
+                })
+                .then(result => {
+                    res.status(200)
+                        .json({ message: 'Success', baker: result });
+                })
+                .catch(err => {
+                    errorCode(err, 500, next);
+                })
+        })
+        .catch(err => {
+            errorCode(err, 500, next);
+        });
+};
 
 
 exports.getBaker = (req, res, next) => {
@@ -400,3 +487,34 @@ exports.suspendUser = (req, res, next) => {
             errorCode(err, 500, next);
         })
 }
+
+exports.changePasswordUser = (req, res, next) => {
+    const userId = req.params.userId;
+
+    const { oldPassword, newPassword } = req.body;
+
+    User.findById(userId)
+        .then(user => {
+            bcrypt.compare(oldPassword, user.password)
+                .then(isEqual => {
+                    if (!isEqual) {
+                        authenticationError('Password mismatch', 422);
+                    }
+                    bcrypt.hash(newPassword, 12)
+                        .then(hashedPassword => {
+                            user.password = hashedPassword;
+                        })
+                    return user.save();
+                })
+                .then(result => {
+                    res.status(200)
+                        .json({ message: 'Success', user: result });
+                })
+                .catch(err => {
+                    errorCode(err, 500, next);
+                })
+        })
+        .catch(err => {
+            errorCode(err, 500, next);
+        });
+};
