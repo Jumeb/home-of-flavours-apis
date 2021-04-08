@@ -34,7 +34,7 @@ exports.errorCode = (err, code, next) => {
 
 exports.clearImage = filePath => {
     // filePath = path.join(__dirname, '../images', filePath);
-    filePath && fs.unlink(filePath, err => console.log(err, 'hahah'));
+    filePath && fs.unlink(filePath, err => console.log(err));
 }
 
 exports.validationError = (req, message, code) => {

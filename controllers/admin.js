@@ -7,6 +7,7 @@ const User = require('../model/user');
 const Admin = require('../model/admin');
 const Order = require('../model/order');
 const { validationError, errorCode, clearImage, authenticationError } = require('../utils/utilities');
+const baker = require('../model/baker');
 
 exports.register = (req, res, next) => {
     validationError(req, 'An error occured', 422);
@@ -109,6 +110,38 @@ exports.updateProfile = (req, res, next) => {
         })
 };
 
+exports.editImage = (req, res, next) => {
+    validationError(req, 'An error occured', 422);
+
+    const adminId = req.params.adminId;
+
+    let image;
+
+    if (req.files.image) {
+        image = req.files.image[0].path;
+    }
+
+    Admin.findById(adminId)
+        .then(admin => {
+            if (!admin) {
+                authenticationError('Admin not found', 422);
+            }
+            if (image !== admin.image) {
+                clearImage(admin.image);
+            }
+            admin.image = image || admin.image;
+            return admin.save();
+        })
+        .then(admin => {
+            res.status(200)
+                .json({ message: 'Image successfully updated', admin });
+        })
+        .catch(err => {
+            errorCode(err, 500, next);
+    })
+
+}
+
 exports.changePasswordAdmin = (req, res, next) => {
     const adminId = req.params.adminId;
 
@@ -124,8 +157,9 @@ exports.changePasswordAdmin = (req, res, next) => {
                     bcrypt.hash(newPassword, 12)
                         .then(hashedPassword => {
                             admin.password = hashedPassword;
+                            admin.save();
                         })
-                    return admin.save();
+                    return admin;
                 })
                 .then(result => {
                     res.status(200)
@@ -256,8 +290,9 @@ exports.changePasswordBaker = (req, res, next) => {
                     bcrypt.hash(newPassword, 12)
                         .then(hashedPassword => {
                             baker.password = hashedPassword;
+                            baker.save();
                         })
-                    return baker.save();
+                    return baker;
                 })
                 .then(result => {
                     res.status(200)
@@ -503,8 +538,9 @@ exports.changePasswordUser = (req, res, next) => {
                     bcrypt.hash(newPassword, 12)
                         .then(hashedPassword => {
                             user.password = hashedPassword;
+                            user.save();
                         })
-                    return user.save();
+                    return user;
                 })
                 .then(result => {
                     res.status(200)

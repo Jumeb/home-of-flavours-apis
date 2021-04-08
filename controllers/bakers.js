@@ -177,8 +177,8 @@ exports.editBakerImages = (req, res, next) => {
             if (ceoImage !== baker.ceoImage) {
                 clearImage(baker.ceoImage);
             }
-            baker.companyImage = companyImage;
-            baker.ceoImage = ceoImage;
+            baker.companyImage = companyImage || baker.companyImage;
+            baker.ceoImage = ceoImage || baker.ceoImage;
             return baker.save();
         })
         .then(result => {

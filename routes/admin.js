@@ -31,6 +31,8 @@ router.post('/admin/register', [
 
 router.post('/admin/login', adminController.login);
 
+router.put('/admin/image/:adminId', adminController.editImage);
+
 router.put('/admin/updateprofile/:adminId', isAuth, adminController.updateProfile);
 
 router.put('/admin/changepassword/:adminId', isAuth, adminController.changePasswordAdmin);
