@@ -258,12 +258,12 @@ exports.getVerifiedBakers = (req, res, next) => {
     const perPage = 50;
     let totalItems;
     Baker.find()
-        .sort({name: 'asc'})
+        .sort({total: 'desc'})
         .countDocuments()
         .then(count => {
             totalItems = count;
             return Baker.find({verify: true}) //put verify here by end of day
-                .sort({companyName: 'asc'})
+                // .sort({total: 'desc'})
                 .skip((currentPage - 1) * perPage)
                 .limit(perPage)
         })

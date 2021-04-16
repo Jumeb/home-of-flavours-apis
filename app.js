@@ -16,13 +16,13 @@ const adminRoutes = require('./routes/admin');
 // const {
 //     bakerRoutes, 
 //     userRoutes, 
-//     pastryRoutes, 
+//     pastryRoutes, 4FEB6pvc8LI9Ru7D
 //     orderRoutes, 
 // } = require('./routes');
 
-const {fileStorage, fileFilter} = require('./utils/utilities');
+const { fileStorage, fileFilter } = require('./utils/utilities');
 
-const MONGODB_URI = 'mongodb://localhost:27017/CaraCakes';
+const MONGODB_URI = 'mongodb+srv://HouseOfFlavours:4FEB6pvc8LI9Ru7D@homeofflavours.7nvfr.mongodb.net/myFirstDatabase?retryWrites=true&w=majority';
 const fields = [
     {name: 'image'},
     {name: 'logo'},
@@ -61,6 +61,7 @@ app.use((error, req, res, next) => {
 
 mongoose.connect(MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true })
     .then(result => {
+        console.log('Connected');
         Admin.findOne()
             .then(admin => {
                 if (!admin) {
