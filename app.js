@@ -1,9 +1,13 @@
 const path = require('path');
+const fs = require('fs');
 const express = require("express");
 const bodyParser = require('body-parser');
 const multer = require('multer');
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
+const helmet = require('helmet');
+const compression = require('compression');
+const morgan = require('morgan');
 
 const Admin = require('./model/admin');
 
@@ -22,14 +26,23 @@ const adminRoutes = require('./routes/admin');
 
 const { fileStorage, fileFilter } = require('./utils/utilities');
 
-const MONGODB_URI = 'mongodb+srv://HouseOfFlavours:4FEB6pvc8LI9Ru7D@homeofflavours.7nvfr.mongodb.net/myFirstDatabase?retryWrites=true&w=majority';
+const MONGODB_URI = `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASSWORD}@homeofflavours.7nvfr.mongodb.net/myFirstDatabase?retryWrites=true&w=majority`;
 const fields = [
     {name: 'image'},
     {name: 'logo'},
     {name: 'pastryImage'},
 ]
 
+const accessLog = fs.createWriteStream(
+    path.join(__dirname, 'access.log'),
+    {flags: 'a'}
+)
+
 const app = express();
+
+app.use(helmet());
+app.use(compression());
+app.use(morgan('combined', {stream: accessLog}));
 
 app.use(bodyParser.json()); //application/json
 
