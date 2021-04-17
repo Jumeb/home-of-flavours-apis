@@ -59,6 +59,8 @@ app.use((error, req, res, next) => {
     res.status(status).json({message: message, data: data})
 })
 
+const port = process.env.PORT || 8081;
+
 mongoose.connect(MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true })
     .then(result => {
         console.log('Connected');
@@ -77,7 +79,7 @@ mongoose.connect(MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true 
             })
     })
     .then(result => {
-        const server = app.listen(8081);
+        const server = app.listen(port);
         const io = require('socket.io')(server);
         io.on('connection', socket => {
             console.log('Client Connected');
