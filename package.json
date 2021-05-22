@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "NODE_ENV=production MONGO_USER=HouseOfFlavours MONGO_PASSWORD=4FEB6pvc8LI9Ru7D node app.js",
+    "start": "NODE_ENV=production MONGO_USER=HouseOfFlavours MONGO_PASSWORD=4FEB6pvc8LI9Ru7D EMAIL=bnyuykonghi@gmail.com PASSWORD=Brice1999@ node app.js",
     "start-server": "node app.js",
     "start:dev": "nodemon app.js"
   },
