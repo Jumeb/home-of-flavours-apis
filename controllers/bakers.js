@@ -1,6 +1,31 @@
 const {validationResult} = require('express-validator');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const nodemailer = require('nodemailer');
+require('dotenv').config();
+const hbs = require('nodemailer-express-handlebars');
+
+let transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        // type: "OAUTH2",
+        // user: GMAIL_USERNAME,  //set these in your .env file
+        // clientId: CLIENT_ID,
+        // clientSecret: CLIENT_SECRET,
+        // refreshToken: REFRESH_TOKEN,
+        user: process.env.EMAIL,
+        pass: process.env.PASSWORD
+    }
+});
+
+transporter.use('compile', hbs({
+    viewEngine: {
+        extname: '.handlebars',
+        layoutsDir: './views/',
+        defaultLayout : 'index',
+    },
+    viewPath: './views/'
+}));
 
 const Baker = require('../model/baker');
 const Order = require('../model/order');
@@ -17,10 +42,12 @@ exports.register = (req, res, next) => {
     const password = req.body.password;
     const telNumber = req.body.tel;
 
+    console.log(email, name, process.env.GMAIL_USERNAME);
+
     bcrypt.hash(password, 12)
         .then(hashedPassword => {
             const baker = new Baker({
-                name, 
+                name,
                 categories,
                 companyName,
                 idCardNumber,
@@ -31,15 +58,33 @@ exports.register = (req, res, next) => {
             return baker.save()
         })
         .then(result => {
-            res.status(201).json({
-            message: 'Registration successfully!',
-            baker: result
+            console.log('email sending');
+            return transporter.sendMail({
+                from: '"Jume Brice 👻" <bricejume@gmail.com>',
+                to: email,
+                subject: "Welcome to Home of Flavours",
+                text: "You have successfully signed up in HOF", 
+                template: 'register',
+                context: {
+                    name: name,
+                    companyName
+                }
+            }).then(power => {
+                console.log(power, 'email sent');
+                res.status(201).json({
+                    message: 'Registration successfully!',
+                    baker: result
+                })
             })
+                .catch(err => {
+                    errorCode(err, 500, next);
+                
+                });
         })
-        .catch(err =>{
+        .catch(err => {
             errorCode(err, 500, next);
         });
-}
+};
 
 exports.login = (req, res, next) => {
     const idCardNumber = req.body.email;

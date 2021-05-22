@@ -1,6 +1,26 @@
 const {validationResult} = require('express-validator');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const nodemailer = require('nodemailer');
+require('dotenv').config();
+const hbs = require('nodemailer-express-handlebars');
+
+let transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: process.env.EMAIL,
+        pass: process.env.PASSWORD
+    }
+});
+
+transporter.use('compile', hbs({
+    viewEngine: {
+        extname: '.handlebars',
+        layoutsDir: './views/',
+        defaultLayout : 'index',
+    },
+    viewPath: './views/'
+}));
 
 const Baker = require('../model/baker');
 const User = require('../model/user');
@@ -344,10 +364,25 @@ exports.suspendBaker = (req, res, next) => {
         })
         .then(result => {
             res.status(200)
-                .json({
-                    message: suspend ? 'Baker has been suspended' : 'Baker has been unsuspended',
-                    baker: result,
-                })
+            .json({
+                message: suspend ? 'Baker has been suspended' : 'Baker has been unsuspended',
+                baker: result,
+            })
+
+            return result;
+        })
+        .then(baker => {
+            return transporter.sendMail({
+                from: '"Jume Brice 👻" <bnyuykonghi@gmail.com>', // sender address
+                to: baker.email, // list of receivers
+                subject: baker.suspend ? "Suspended" : 'Restored',
+                text: baker.suspend ? "You account has been suspended" : "You account has been restored" ,
+                template: baker.suspend ? 'suspend' : 'unsuspend',
+                context: {
+                    name: baker.name,
+                    companyName: baker.companyName,
+                }
+            })
         })
         .catch(err => {
             errorCode(err, 500, next);
@@ -377,6 +412,20 @@ exports.verifyBaker = (req, res, next) => {
                     message: verify ? 'Baker has been verified' : 'Baker has been unverified',
                     baker: result,
                 })
+            return result;
+        })
+        .then(baker => {
+            return transporter.sendMail({
+                from: '"Jume Brice 👻" <bnyuykonghi@gmail.com>', // sender address
+                to: baker.email, // list of receivers
+                subject: "Verified account",
+                text: "You account has been verified" ,
+                template: 'welcome',
+                context: {
+                    name: baker.name,
+                    companyName: baker.companyName,
+                }
+            })
         })
         .catch(err => {
             errorCode(err, 500, next);
