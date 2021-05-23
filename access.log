@@ -3115,3 +3115,8 @@
 ::1 - - [23/May/2021:14:19:42 +0000] "OPTIONS /rawbakers HTTP/1.1" 200 8 "http://localhost:3000/" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.90 Safari/537.36"
 ::1 - {"alg" [23/May/2021:14:19:43 +0000] "GET /rawbakers HTTP/1.1" 200 - "http://localhost:3000/" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.90 Safari/537.36"
 ::1 - {"alg" [23/May/2021:14:19:43 +0000] "GET /rawbakers HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.90 Safari/537.36"
+::1 - - [23/May/2021:14:35:36 +0000] "OPTIONS /baker/suspend/607b13ac7197ed0004c4c5dc HTTP/1.1" 200 3 "http://localhost:3000/" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.90 Safari/537.36"
+::1 - {"alg" [23/May/2021:14:35:37 +0000] "PUT /baker/suspend/607b13ac7197ed0004c4c5dc HTTP/1.1" 200 - "http://localhost:3000/" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.90 Safari/537.36"
+::1 - - [23/May/2021:14:35:37 +0000] "OPTIONS /rawbakers HTTP/1.1" 200 8 "http://localhost:3000/" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.90 Safari/537.36"
+::1 - {"alg" [23/May/2021:14:35:38 +0000] "GET /rawbakers HTTP/1.1" 200 - "http://localhost:3000/" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.90 Safari/537.36"
+::1 - {"alg" [23/May/2021:14:35:38 +0000] "GET /rawbakers HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.90 Safari/537.36"

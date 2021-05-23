@@ -8,6 +8,182 @@
     <title>Document</title>
 </head>
 <style>
+    :root {
+        --color-primary: #14334a;
+        --color-primary-light: #215379;
+        --color-primary-medium: #4693cd;
+        --color-secondary: 20, 51, 74;
+        --color-secondary-light: 33, 83, 121;
+        --color-secondary-medium: 70, 147, 205;
+
+        --color-mix-1: 74, 20, 51;
+        --color-mix-11: 121, 33, 83;
+        --color-mix-12: 205, 70, 147;
+        --color-mix-2: 51, 74, 20;
+        --color-mix-21: 83, 121, 33;
+        --color-mix-22: 147, 205, 70;
+
+        --color-white: #fff;
+
+        --color-grey-light-1: #F1F2F2;
+        --color-grey-light-2: #E6E7E8;
+        --color-grey-light-3: #D1D3D4;
+        --color-grey-light-4: #BCBEC0;
+
+        --color-grey-dark-1: #333;
+        --color-grey-dark-2: #777;
+        --color-grey-dark-3: #999;
+
+        --transparent-1: rgba(3, 21, 24, 0.089);
+
+        --color-danger: #e81732;
+        --color-danger-light: #EB354C;
+        --color-danger-medium: #EE5B6E;
+
+        --color-success: #20df69;
+        --color-success-light: #48E484;
+        --color-success-medium: #76EBA3;
+
+        --border-radius-small: 0.4rem;
+        --border-radius-medium: 0.8rem;
+        --border-radius-large: 2rem;
+        --border-radius-larger: 10rem;
+        --border-radius-round: 50%;
+
+        --font-size-extra-small: 1rem;
+        --font-size-small: 1.2rem;
+        --font-size-normal: 1.4rem;
+        --font-size-medium: 1.8rem;
+        --font-size-large: 2rem;
+        --font-size-extra-large: 2.5rem;
+        --font-size-big: 4rem;
+        --font-size-bigger: 6rem;
+        --font-size-huge: 8rem;
+
+        --color-gradien-1: 20, 51, 74;
+        --color-gradien-2: 70, 147, 205;
+
+        --color-gradient-1: 0, 201, 255;
+        --color-gradient-2: 72, 228, 132;
+
+        --font-weight-normal: 400;
+        --font-weight-medium: 700;
+        --font-weight-bold: 900;
+
+        --box-shadow-light: 0 0.1rem 0.2rem 0.1rem rgba(110, 110, 110, 0.1);
+        --box-shadow-medium: 0 0.2rem 0.3rem 0.2rem rgba(87, 87, 87, 0.2);
+        --box-shadow-heavy: 0 0.2rem 0.4rem rgba(56, 56, 56, 0.7);
+        --box-shadow-heavier: 0 0.2rem 0.4rem 0.3rem rgba(34, 33, 33, 0.5);
+
+        --linear-gradient-1: linear-gradient(to right, rgba(var(--color-gradien-2), 0.345), rgba(var(--color-gradient-1), 0.4));
+        --linear-gradient-2: linear-gradient(to right, rgba(var(--color-gradien-1), 0.3), rgba(var(--color-gradien-2), 0.3));
+        --linear-gradient-3: linear-gradient(to right, rgba(var(--color-secondary-medium), 0.7), rgba(var(--color-secondary-medium), 0.5));
+        --linear-gradient-4: linear-gradient(to right, #ffffff46, #ffffff67);
+
+        --longest-width: 112.5em;
+        --default-width: 75em;
+        --longer-width: 56.25em;
+        --medium-width: 37.5em;
+        --phone-width: 25.75em;
+
+    }
+
+    * {
+        margin: 0;
+        padding: 0;
+    }
+
+    *,
+    *::after,
+    *::before {
+        box-sizing: inherit;
+    }
+
+    html {
+        box-sizing: border-box;
+        font-size: 62.5%;
+    }
+
+    @media only screen and (max-width: 75em) {
+        html {
+            font-size: 56.25%;
+        }
+    }
+
+    @media (max-width: 56.25em) {
+        html {
+            font-size: 50%;
+        }
+    }
+
+    @media only screen and (max-width: 37.5em) {
+        html {
+            font-size: 43.75%;
+        }
+    }
+
+    @media only screen and (max-width: 25.75em) {
+        html {
+            font-size: 37.5%;
+        }
+    }
+
+    @media (min-width: 112.5em) {
+        html {
+            font-size: 75%;
+        }
+    }
+
+    body {
+        line-height: 1.6;
+        font-weight: 400;
+        color: var(--color-primary);
+        padding: 2rem;
+    }
+
+    @media only screen and (max-width: 75em) {
+        body {
+            padding: 0;
+        }
+    }
+
+    @media only screen and (max-width: 56.25em) {
+        body {
+            padding: 3.5rem;
+        }
+    }
+
+
+    @media only screen and (max-width: 37.5em) {
+        body {
+            padding: 0;
+        }
+    }
+
+    p {
+        font-size: 1.4rem;
+        margin-top: 1.2rem;
+        -webkit-hyphens: auto;
+        hyphens: auto;
+        color: var(--color-grey-dark-2);
+    }
+
+    p:not(:last-child) {
+        margin-bottom: 6rem;
+    }
+
+    @media only screen and (max-width: 37.5em) {
+        p {
+            padding: 0 3rem;
+        }
+    }
+
+    @media only screen and (max-width: 25.75em) {
+        p {
+            padding: 0 1.8rem;
+        }
+    }
+
     h1 {
         color: #215379;
         text-align: center;
