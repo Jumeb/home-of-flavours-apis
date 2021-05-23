@@ -5,11 +5,23 @@ const nodemailer = require('nodemailer');
 require('dotenv').config();
 const hbs = require('nodemailer-express-handlebars');
 
+
+CLIENT_ID="726092047273-qsfsckg63kss1g920f4mfr0f90i27fni.apps.googleusercontent.com"
+CLIENT_SECRET="MNCuPuE6dv7qrwia1Uz1694M"
+GMAIL_USERNAME="bricejume@gmail.com"
+REFRESH_TOKEN="1//04hG7k4zRUF3lCgYIARAAGAQSNwF-L9IrxBBrLinpCrGTkAmXwIaBEJCQidm19KpvkYVi0S6bxyH6djeicKYRi-8gWv0w8fX706g"
+ACCESS_TOKEN="ya29.a0AfH6SMD2IwsWCW1KCrx8r0jgavc2jM6Ti3vm_Uqqh3zka-JeMp2JS-vmsM7UxxPG0udCDdn-tVmv2EG53P_u-J7F7cshVKjEjNa8Qo5Cahlp_BhBe_F2-0GAThCo_2a2ry20inrRXz1D2xQJu60Wgr0fDSHg"
+
 let transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
-        user: process.env.EMAIL,
-        pass: process.env.PASSWORD
+        type: "OAUTH2",
+        user: GMAIL_USERNAME,  //set these in your .env file
+        clientId: CLIENT_ID,
+        clientSecret: CLIENT_SECRET,
+        refreshToken: REFRESH_TOKEN,
+        // user: process.env.EMAIL,
+        // pass: process.env.PASSWORD
     }
 });
 
