@@ -69,7 +69,8 @@ exports.register = (req, res, next) => {
                     name: name,
                     companyName
                 }
-            }).then(power => {
+            })
+                .then(power => {
                 console.log(power, 'email sent');
                 res.status(201).json({
                     message: 'Registration successfully!',

@@ -1,4 +1,26 @@
-const {validationResult} = require('express-validator')
+const nodemailer = require('nodemailer');
+require('dotenv').config();
+const hbs = require('nodemailer-express-handlebars');
+
+let transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        type: "OAUTH2",
+        user: process.env.GMAIL_USERNAME,
+        clientId: process.env.CLIENT_ID,
+        clientSecret: process.env.CLIENT_SECRET,
+        refreshToken: process.env.REFRESH_TOKEN,
+    }
+});
+
+transporter.use('compile', hbs({
+    viewEngine: {
+        extname: '.handlebars',
+        layoutsDir: './views/',
+        defaultLayout : 'index',
+    },
+    viewPath: './views/'
+}));
 
 const Order = require('../model/order');
 const User = require('../model/user');
@@ -12,6 +34,8 @@ exports.createOrder = (req, res, next) => {
     const userId = req.params.userId;
 
     const bakerId = req.query.baker;
+
+    let userInfo, bakerInfo;
 
     let notOrdered;
     let pastries;
@@ -30,6 +54,7 @@ exports.createOrder = (req, res, next) => {
                 pastries,
             });
 
+            userInfo = user;
             return Promise.all([order.save(), notOrdered, user]);
         })
         .then(result => {
@@ -38,13 +63,37 @@ exports.createOrder = (req, res, next) => {
             const user = result[2];
             user.clearCart(leftOrder, order._id);
             res.status(200).json({ message: 'Successfully placed order', order });
-            //  const bk = async () => 
             Baker.findById(bakerId)
                 .then(baker => {
                     if (!baker) {
                         authenticationError(req, 'Baker not found', 401);
                     }
-                    baker.ordered(order._id)
+                    baker.ordered(order._id);
+                    bakerInfo = baker;
+                    return baker;
+                })
+                .then(baker => {
+                    return Promise.all([transporter.sendMail({
+                        from: '"Jume Brice 👻" <bnyuykonghi@gmail.com>', // sender address
+                        to: baker.email, // list of receivers
+                        subject: 'New Order',
+                        text: "You have a new order",
+                        template: "order",
+                        context: {
+                            name: baker.name,
+                            userName: userInfo.name,
+                        }
+                    }), transporter.sendMail({
+                        from: '"Jume Brice 👻" <bnyuykonghi@gmail.com>', // sender address
+                        to: userInfo.email, // list of receivers
+                        subject: 'New Order',
+                        text: "You have a new order",
+                        template: "order",
+                        context: {
+                            name: userInfo.name,
+                            companyName: baker.companyName,
+                        }
+                    })]);
                 })
                 .catch(err => {
                     errorCode(err, 500, next);

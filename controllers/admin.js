@@ -571,6 +571,19 @@ exports.suspendUser = (req, res, next) => {
                     message: result.suspend ? 'User suspended' : 'User unsuspended',
                     user: result,
                 })
+            return result;
+        })
+        .then(user => {
+            return transporter.sendMail({
+                from: '"Jume Brice 👻" <bnyuykonghi@gmail.com>',
+                to: user.email, 
+                subject: user.suspend ? "Suspended" : 'Restored',
+                text: user.suspend ? "You account has been suspended" : "You account has been restored" ,
+                template: user.suspend ? 'suspendUser' : 'unsuspendUser',
+                context: {
+                    name: user.name,
+                }
+            })
         })
         .catch(err => {
             errorCode(err, 500, next);

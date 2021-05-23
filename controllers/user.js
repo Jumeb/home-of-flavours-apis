@@ -31,6 +31,19 @@ exports.register = (req, res, next) => {
       });
       return user.save();
     })
+    .then(user => {
+      transporter.sendMail({
+        from: '"Jume Brice 👻" <bricejume@gmail.com>',
+        to: email,
+        subject: "Welcome to Home of Flavours",
+        text: "You have successfully signed up in HOF",
+        template: 'welcomeUser',
+        context: {
+          name: name,
+        }
+      })
+      return user;
+    })
     .then((result) => {
       res.status(201).json({ message: "User created", userId: result._id });
     })
