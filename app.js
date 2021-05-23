@@ -26,8 +26,8 @@ const adminRoutes = require('./routes/admin');
 
 const { fileStorage, fileFilter } = require('./utils/utilities');
 
-// const MONGODB_URI = `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASSWORD}@homeofflavours.7nvfr.mongodb.net/myFirstDatabase?retryWrites=true&w=majority`;
-const MONGODB_URI = 'mongodb://localhost:27017/CaraCakes';
+const MONGODB_URI = `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASSWORD}@homeofflavours.7nvfr.mongodb.net/myFirstDatabase?retryWrites=true&w=majority`;
+// const MONGODB_URI = 'mongodb://localhost:27017/CaraCakes';
 
 const fields = [
     {name: 'image'},
