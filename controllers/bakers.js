@@ -8,13 +8,13 @@ const hbs = require('nodemailer-express-handlebars');
 let transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
-        // type: "OAUTH2",
-        // user: process.env.GMAIL_USERNAME,  //set these in your .env file
-        // clientId: process.env.CLIENT_ID,
-        // clientSecret: process.env.CLIENT_SECRET,
-        // refreshToken: process.env.REFRESH_TOKEN,
-        user: process.env.EMAIL,
-        pass: process.env.PASSWORD
+        type: "OAUTH2",
+        user: process.env.GMAIL_USERNAME,  //set these in your .env file
+        clientId: process.env.CLIENT_ID,
+        clientSecret: process.env.CLIENT_SECRET,
+        refreshToken: process.env.REFRESH_TOKEN,
+        // user: process.env.EMAIL,
+        // pass: process.env.PASSWORD
     }
 });
 
