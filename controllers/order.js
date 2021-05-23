@@ -88,7 +88,7 @@ exports.createOrder = (req, res, next) => {
                         to: userInfo.email, // list of receivers
                         subject: 'New Order',
                         text: "You have a new order",
-                        template: "order",
+                        template: "orderUser",
                         context: {
                             name: userInfo.name,
                             companyName: baker.companyName,
