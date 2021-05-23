@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "NODE_ENV=production MONGO_USER=HouseOfFlavours MONGO_PASSWORD=4FEB6pvc8LI9Ru7D EMAIL=bnyuykonghi@gmail.com PASSWORD=Brice1999@ node app.js",
+    "start": "NODE_ENV=production MONGO_USER=HouseOfFlavours MONGO_PASSWORD=4FEB6pvc8LI9Ru7D EMAIL=bnyuykonghi@gmail.com PASSWORD=Brice1999@ CLIENT_ID=726092047273-qsfsckg63kss1g920f4mfr0f90i27fni.apps.googleusercontent.com CLIENT_SECRET=MNCuPuE6dv7qrwia1Uz1694M GMAIL_USERNAME=bricejume@gmail.com REFRESH_TOKEN=1//04hG7k4zRUF3lCgYIARAAGAQSNwF-L9IrxBBrLinpCrGTkAmXwIaBEJCQidm19KpvkYVi0S6bxyH6djeicKYRi-8gWv0w8fX706g node app.js",
     "start-server": "node app.js",
     "start:dev": "nodemon app.js"
   },
