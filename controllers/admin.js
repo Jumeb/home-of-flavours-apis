@@ -8,8 +8,8 @@ const hbs = require('nodemailer-express-handlebars');
 let transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
-        user: 'byuykonghi@gmail.com',
-        pass: 'Brice1999@'
+        user: process.env.EMAIL,
+        pass: process.env.PASSWORD
     }
 });
 
