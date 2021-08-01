@@ -34,6 +34,8 @@ router.post("/user/addToCart/:pastryId", userController.postCart);
 
 router.post("/user/subFromCart/:pastryId", userController.subFromCart);
 
+router.post('/user/postCart/:userId', userController.addToCart);
+
 router.post("/user/removeFromCart/:pastryId", userController.removeFromCart);
 
 router.post("/user/message/:pastryId", userController.pastryMessage);

@@ -1,5 +1,7 @@
 const { validationResult } = require("express-validator");
 const bcrypt = require("bcryptjs");
+const nodemailer = require('nodemailer');
+const hbs = require('nodemailer-express-handlebars');
 const jwt = require("jsonwebtoken");
 
 const User = require("../model/user");
@@ -11,6 +13,28 @@ const {
   authenticationError,
 } = require("../utils/utilities");
 const baker = require("../model/baker");
+
+let transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        type: "OAUTH2",
+        user: process.env.GMAIL_USERNAME,  //set these in your .env file
+        clientId: process.env.CLIENT_ID,
+        clientSecret: process.env.CLIENT_SECRET,
+        refreshToken: process.env.REFRESH_TOKEN,
+        // user: process.env.EMAIL,
+        // pass: process.env.PASSWORD
+    }
+});
+
+transporter.use('compile', hbs({
+    viewEngine: {
+        extname: '.handlebars',
+        layoutsDir: './views/',
+        defaultLayout : 'index',
+    },
+    viewPath: './views/'
+}));
 
 exports.register = (req, res, next) => {
   validationError(req, "Validation failed, entered data is incorrect", 422);
@@ -24,7 +48,7 @@ exports.register = (req, res, next) => {
     .hash(password, 12)
     .then((hashedPassword) => {
       const user = new User({
-        name: name,
+        name,
         email: email,
         telNumber: telNo,
         password: hashedPassword,
@@ -180,6 +204,24 @@ exports.subFromCart = (req, res, next) => {
       errorCode(err, 500, next);
     });
 };
+
+exports.addToCart = (req, res, next) => {
+    const { cart } = req.body;
+    const userId = req.params.userId;
+
+    validationError(req, "An error occured", 422);
+
+    User.findById(userId)
+        .then(user => {
+            return user.postCart(JSON.parse(cart));
+        })
+        .then(result => {
+            res.status(200).json({ message: "Added to Cart" });
+        })
+        .catch(err => {
+            errorCode(err, 500, next);
+    })
+}
 
 exports.pastryMessage = (req, res, next) => {
   const pastryId = req.params.pastryId;

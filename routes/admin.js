@@ -92,4 +92,18 @@ router.put('/user/changepassword/:userId', isAuth, adminController.changePasswor
 
 router.delete('/user/delete/:userId', isAuth, adminController.deleteUser);
 
+///////////////////////////////////////////
+///                                    ///
+///         Bakers routes              ///
+///                                    ///
+//////////////////////////////////////////
+
+router.get('/locations', isAuth, adminController.getLocations);
+
+router.post('/location', isAuth, adminController.postLocation);
+
+router.put('/location/:locationId', isAuth, adminController.editLocation);
+
+router.delete('/location/delete/:locationId', isAuth, adminController.deletLocation);
+
 module.exports = router;

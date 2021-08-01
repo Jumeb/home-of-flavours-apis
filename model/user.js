@@ -29,6 +29,9 @@ const userModel = new Schema({
                 type: Schema.Types.ObjectId,
                 ref: 'Order',
                 required: true,
+            },
+            date: {
+                type: Date,
             }
         }]
     },
@@ -74,6 +77,7 @@ const userModel = new Schema({
             },
             message: {
                 type: String,
+                default: "",
             }
         }]
     },
@@ -226,6 +230,25 @@ userModel.methods.subFromCart = function (pastryId) {
     this.cart = updatedCart;
     return this.save();
 }
+
+userModel.methods.postCart = function (arr) {
+    const updatedCartItems = [...this.cart.pastries];
+    let index = updatedCartItems.findIndex((p) => p.id === arr.pastryId);
+
+    if (index >= 0) {
+        let sumQuantity = updatedCartItems[index].quantity + arr.quantity;
+        updatedCartItems[index].quantity = sumQuantity;
+        updatedCartItems[index].message = arr?.message || updatedCartItems[index].message;
+    } else {
+        updatedCartItems.push(product);
+    }
+    
+    const updatedCart = { 
+        pastries: updatedCartItems
+    };
+    this.cart = updatedCart; 
+    return this.save();
+};
 
 userModel.methods.removeFromCart = function (pastryId) {
     const updatedCartItems = this.cart.pastries.filter(item => {

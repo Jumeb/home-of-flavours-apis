@@ -35,6 +35,8 @@ exports.createOrder = (req, res, next) => {
 
     const bakerId = req.query.baker;
 
+    const { location } = req.body;
+
     let userInfo, bakerInfo;
 
     let notOrdered;
@@ -50,6 +52,7 @@ exports.createOrder = (req, res, next) => {
             notOrdered = _pastries.filter(pastry => pastry.pastryId.creator.toString() !== bakerId.toString());
             const order = new Order({
                 userId,
+                location,
                 bakerId,
                 pastries,
             });
@@ -62,7 +65,7 @@ exports.createOrder = (req, res, next) => {
             const leftOrder = result[1];
             const user = result[2];
             user.clearCart(leftOrder, order._id);
-            res.status(200).json({ message: 'Successfully placed order', order });
+            res.status(200).json({ message: 'Successfully placed order', order, user });
             Baker.findById(bakerId)
                 .then(baker => {
                     if (!baker) {

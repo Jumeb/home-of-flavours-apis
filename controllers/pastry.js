@@ -203,7 +203,7 @@ exports.editPastryImage = (req, res, next) => {
             }
 
             pastry.image = pastryImage;
-            return baker.save();
+            return pastry.save();
         })
         .then(result => {
             res.status(200)

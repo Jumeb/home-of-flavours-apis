@@ -31,8 +31,8 @@ const Baker = require('../model/baker');
 const User = require('../model/user');
 const Admin = require('../model/admin');
 const Order = require('../model/order');
+const Location = require('../model/location');
 const { validationError, errorCode, clearImage, authenticationError } = require('../utils/utilities');
-const baker = require('../model/baker');
 
 exports.register = (req, res, next) => {
     validationError(req, 'An error occured', 422);
@@ -621,3 +621,101 @@ exports.changePasswordUser = (req, res, next) => {
             errorCode(err, 500, next);
         });
 };
+
+
+///////////////////////////////////////////
+///                                    ///
+///         Location controllers       ///
+///                                    ///
+//////////////////////////////////////////
+
+exports.postLocation = (req, res, next) => {
+    validationError(req, 'An error occured', 422);
+
+    const { location, coords } = req.body;
+
+    const locate = new Location({
+        location,
+        coords,
+    });
+
+    locate.save()
+        .then(location => {
+            res.status(200)
+                .json({
+                    message: "Success",
+                    location,
+            })
+        })
+        .catch(err => {
+            errorCode(err, 500, next);
+        })
+
+}
+
+exports.getLocations = (req, res, next) => {
+    validationError(req, 'An error occured', 422);
+
+    Location.find()
+        .then(locations => {
+            if (!locations) {
+                authenticationError('Locations not found', 422);
+            }
+            res.status(200)
+                .json({
+                    message: 'Success',
+                    locations,
+            })
+        })
+        .catch(err => {
+            errorCode(err, 500, next);
+    })
+}
+
+exports.editLocation = (req, res, next) => {
+    validationError(req, 'An error occured', 422);
+
+    const { locationId } = req.params;
+
+    const { location, coords } = req.body;
+
+    Location.findById(locationId)
+        .then(locate => {
+            if (!locate) {
+                authenticationError('Location not found', 422);
+            }
+            locate.location = location || locate.location;
+            locate.coords = coords || locate.coords;
+            return locate.save();
+        })
+        .then(locate => {
+            res.status(201).json({
+                message: 'Success',
+                location: locate,
+        })
+        })
+        .catch(err => {
+            errorCode(err, 500, next);
+    })
+}
+
+exports.deletLocation = (req, res, next) => {
+    validationError(req, 'An error occured', 422);
+
+    const { locationId } = req.params;
+
+    Location.findByIdAndRemove(locationId)
+        .then(result => {
+            if (!result) {
+                authenticationError('Result not found', 422);
+            }
+            res.status(201)
+                .json({
+                    message: 'Success',
+                    result
+                });
+        })
+        .catch(err => {
+            errorCode(err, 500, next);
+    })
+}

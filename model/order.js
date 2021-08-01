@@ -8,6 +8,20 @@ const orderModel = new Schema({
         ref: 'User',
         require: true,
     },
+    location: {
+        type: String,
+        //location name,
+        // require: true,
+    },
+    coords: {
+        type: [Number],
+        //location coordinates (lat/long)
+    },
+    date: {
+        type: Date,
+        //date or delivery
+        // required: true,
+    },
     pastries: [{
         pastryId: {
             type: Schema.Types.ObjectId,
