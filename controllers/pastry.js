@@ -11,11 +11,11 @@ exports.getPastries = (req, res, next) => {
     const perPage = 50;
     let totalItems;
 
-    Pastry.find({creator: bakerId})
+    Pastry.find({creatorId: bakerId})
         .countDocuments()
         .then(count => {
             totalItems = count;
-            return Pastry.find({creator: bakerId})
+            return Pastry.find({creatorId: bakerId})
                 .skip((currentPage - 1) * perPage)
                 .limit(perPage)
         })
@@ -32,7 +32,7 @@ exports.getPastries = (req, res, next) => {
         })
 }
 
-exports.getSuperPastries = (req, res, next) => {
+exports.getSuperPastriesWeb = (req, res, next) => {
     validationError(req, 'An error occured', 422);
 
     const currentPage = req.query.page || 1;
@@ -44,7 +44,7 @@ exports.getSuperPastries = (req, res, next) => {
         .then(count => {
             totalItems = count;
             return Pastry.find()
-                .populate('creator')
+                .populate('creatorId')
                 .skip((currentPage - 1) * perPage)
                 .limit(perPage)
         })
@@ -60,6 +60,24 @@ exports.getSuperPastries = (req, res, next) => {
             errorCode(err, 500, next);
         })
 }
+
+exports.getSuperPastriesMob = (req, res, next) => {
+    validationError(req, 'An error occured', 422);
+
+    Pastry.find()
+        .populate('creatorId')
+        .then(pastries => {
+            // console.log(pastries)
+            res.status(200)
+                .json({
+                    message: 'Fetched Pastries',
+                    pastries: pastries,
+                })
+        })
+        .catch(err => {
+            errorCode(err, 500, next);
+        })
+};
 
 exports.getPastry = (req, res, next) => {
     validationError(req, 'An Error occured', 422);
@@ -91,37 +109,49 @@ exports.createPastry = (req, res, next) => {
         authenticationError('No Pastry Image provided', 401);
     }
     
-    let image;
-    const name = req.body.name;
-    const discount = req.body.discount;
-    const price = req.body.price;
-    const description = req.body.about;
-    const type = req.body.type;
-    const creator = req.body.bakerId;
+    let image = [];
+    const {
+        creatorId,
+        name,
+        type,
+        discount,
+        price,
+        daysRequired,
+        message,
+        isAvailable,
+        about,
+        daysAvailable,
+        recipe, } = req.body;
 
     if (req.files.pastryImage) {
-        image = req.files.pastryImage[0].path;
+        req.files.pastryImage.map((i, index) => image.push(i.path));
     }
 
     const pastry = new Pastry({
         name,
         price,
-        description,
-        image,
-        type,
+        description : about,
         discount,
-        creator,
+        recipe,
+        type,
+        isAvailable,
+        daysAvailable,
+        message,
+        daysRequired,
+        image,
+        creatorId,
     });
-
     pastry.save()
         .then(result => {
+            console.log(result)
             res.status(201)
                 .json({
-                    message: 'Baked successfully',
+                    message: 'Flavour added successfully',
                     pastry: result
                 })
         })
         .catch(err => {
+            console.log(err, 'hhh')
             errorCode(err, 500, next);
         })
 
@@ -132,32 +162,54 @@ exports.editPastry = (req, res, next) => {
 
     const pastryId = req.params.pastryId;
 
-    const { name, price, about, discount, recipe, creator } = req.body;
+    const {
+        name,
+        type,
+        discount,
+        price,
+        daysRequired,
+        message,
+        isAvailable,
+        about,
+        daysAvailable,
+        recipe,
+        creatorId,
+    } = req.body;
 
-    let image;
+    let image = [];
     
     if (req.files.pastryImage) {
-        image = req.files.pastryImage[0].path;
+        req.files.pastryImage.map((i, index) => image.push(i.path));
     }
 
     Pastry.findById(pastryId)
         .then(pastry => {
-          if(!pastry) {
+            if (!pastry) {
                 const error = new Error('Could not find pastry')
                 error.statusCode = 422;
                 throw error;
-          }
+            }
             
             pastry.name = name;
             pastry.price = price;
-            pastry.description = about;  
+            pastry.description = about;
             pastry.discount = discount;
             pastry.recipe = recipe;
-            if (image && image !== pastry.image) {
-                clearImage(pastry.image);
-                pastry.image = image;
+            pastry.type = type;
+            pastry.isAvailable = isAvailable;
+            pastry.daysAvailable = daysAvailable.split(',');
+            pastry.message = message;
+            pastry.daysRequired = daysRequired;
+            if (image && image.length >= 1) {
+                let clear = pastry?.image.filter(x => !image.includes(x));
+                clear.map((i) => clearImage(i));
+                pastry.image = pastry.image.filter(item => clear.indexOf(item) < 0);
+                pastry.image = image.concat(pastry?.image.filter((item) => image.indexOf(item) < 0));
+                if (clear !== pastry?.image) {
+                    pastry.image = pastry?.image.concat(clear).slice(0, 3)
+                }
             }
-
+            console.log(pastry);
             return pastry.save();
         })
         .then(result => {
@@ -170,7 +222,7 @@ exports.editPastry = (req, res, next) => {
         .catch(err => {
             errorCode(err, 500, next);
         })
-}
+};
 
 exports.editPastryImage = (req, res, next) => {
     validationError(req, 'An error occured', 422);
@@ -229,7 +281,7 @@ exports.deletePastry = (req, res, next) => {
                 error.statusCode = 422;
                 throw error;
             }
-            clearImage(pastry.image);
+            pastry.image.map((i) => clearImage(i));
             return Pastry.findByIdAndRemove(pastryId);
         })
         .then(result => {

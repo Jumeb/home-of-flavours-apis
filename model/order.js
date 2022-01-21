@@ -8,15 +8,11 @@ const orderModel = new Schema({
         ref: 'User',
         require: true,
     },
-    location: {
-        type: String,
-        //location name,
-        // require: true,
-    },
-    coords: {
-        type: [Number],
-        //location coordinates (lat/long)
-    },
+    // location: {
+    //     type: Schema.Types.ObjectId,
+    //     ref: 'Location',
+    //     required: true,
+    // },
     date: {
         type: Date,
         //date or delivery

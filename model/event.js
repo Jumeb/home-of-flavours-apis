@@ -19,7 +19,7 @@ const eventModel = new Schema({
         type: Date,
         required: true,
     },
-    creator: {
+    creatorId: {
         type: Schema.Types.ObjectId,
         ref: 'User',
         required: true,

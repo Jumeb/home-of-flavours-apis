@@ -4,7 +4,9 @@ const { body } = require("express-validator");
 const pastryController = require('../controllers/pastry');
 const router = express.Router();
 
-router.get('/superpastries', pastryController.getSuperPastries);
+router.get('/superpastries', pastryController.getSuperPastriesWeb);
+
+router.get('/superpastriesmob', pastryController.getSuperPastriesMob);
 
 router.get('/bakerpastries/:bakerId', pastryController.getPastries);
 

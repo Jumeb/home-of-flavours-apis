@@ -8,6 +8,10 @@ const router = express.Router();
 
 router.get("/user/getcart/:userId", userController.getCart);
 
+router.get("/user/getfavourite/:userId", userController.getFavourites);
+
+router.get('/user/getwallet/:userId', userController.getWallet);
+
 router.post(
   "/user/register",
   [
@@ -30,6 +34,8 @@ router.post(
 
 router.post("/user/login", userController.login);
 
+router.post('/user/location/:userId', userController.postLocation);
+
 router.post("/user/addToCart/:pastryId", userController.postCart);
 
 router.post("/user/subFromCart/:pastryId", userController.subFromCart);
@@ -39,6 +45,10 @@ router.post('/user/postCart/:userId', userController.addToCart);
 router.post("/user/removeFromCart/:pastryId", userController.removeFromCart);
 
 router.post("/user/message/:pastryId", userController.pastryMessage);
+
+router.post("/user/addToFavourite/:pastryId", userController.addToFavourites);
+
+router.post("/user/removeFromFavourite/:pastryId", userController.removeFromFavourites);
 
 router.post('/user/like/:userId', userController.likeUser);
 

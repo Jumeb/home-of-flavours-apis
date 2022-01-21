@@ -12,7 +12,7 @@ router.get('/baker/getorders/:bakerId', orderController.getBakerOrders);
 
 router.get('/baker/getallorders', orderController.getSuperOrders);
 
-router.post('/create/order/:userId', isAuth, orderController.createOrder);
+router.post('/create/order/:userId', orderController.createOrder);
 
 router.post('/create/basket/:eventId', isAuth, orderController.createBasket);
 

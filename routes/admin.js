@@ -44,7 +44,9 @@ router.put('/admin/changepassword/:adminId', isAuth, adminController.changePassw
 ///                                    ///
 //////////////////////////////////////////
 
-router.get('/bakers', adminController.getVerifiedBakers);
+router.get('/bakers', adminController.getVerifiedBakersWeb);
+
+router.get('/bakersmob', adminController.getVerifiedBakersMob);
 
 router.get('/rawbakers', isAuth, adminController.getBakers);
 
@@ -84,7 +86,7 @@ router.get('/users', isAuth, adminController.getUsers);
 
 router.get('/allusers', isAuth, adminController.getAllUsers);
 
-router.get('/users/:userId', isAuth, adminController.getUser);
+router.get('/users/:userId', adminController.getUser);
 
 router.put('/user/suspend/:userId', isAuth, adminController.suspendUser);
 
@@ -100,7 +102,7 @@ router.delete('/user/delete/:userId', isAuth, adminController.deleteUser);
 
 router.get('/locations', isAuth, adminController.getLocations);
 
-router.post('/location', isAuth, adminController.postLocation);
+router.post('/location/:adminId', isAuth, adminController.postLocation);
 
 router.put('/location/:locationId', isAuth, adminController.editLocation);
 

@@ -8,7 +8,7 @@ const pastryModel = new Schema({
         required: true,
     },
     image: {
-        type: String,
+        type: [String],
         required: true,
     },
     price: {
@@ -31,7 +31,7 @@ const pastryModel = new Schema({
         type: String,
     },
     likes: {
-         users: [{
+        users: [{
             userId: {
                 type: Schema.Types.ObjectId,
                 ref: 'User',
@@ -40,7 +40,7 @@ const pastryModel = new Schema({
         }]
     },
     dislikes: {
-         users: [{
+        users: [{
             userId: {
                 type: Schema.Types.ObjectId,
                 ref: 'User',
@@ -48,12 +48,30 @@ const pastryModel = new Schema({
             }
         }]
     },
-    creator: {
+    isAvailable: {
+        type: Boolean,
+        default: true,
+    },
+    daysAvailable: {
+        type: [String],
+        default: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
+    },
+    message: {
+        type: Boolean,
+        default: false,
+    },
+    daysRequired: {
+        type: Number,
+        default: 1,
+    },
+    creatorId: {
         type: Schema.Types.ObjectId,
         ref: 'Baker',
         required: true,
     }
-}, {timestamps: true});
+}, {
+    timestamps: true
+});
 
 
 pastryModel.methods.like = function (userId) {
@@ -102,7 +120,7 @@ pastryModel.methods.dislike = function (userId) {
     const _userIndex = this.dislikes.users.findIndex(ui => {
         return ui.userId.toString() === userId.toString();
     })
-    
+
     const likeData = [...this.likes.users];
     const dislikeData = [...this.dislikes.users];
 

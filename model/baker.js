@@ -108,6 +108,10 @@ const bakerModel = new Schema({
             }
         }]
     },
+    upFront: {
+        type: Number,
+        default: 0,   
+    },
     password: {
         type: String,
         required: true,

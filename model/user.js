@@ -81,6 +81,15 @@ const userModel = new Schema({
             }
         }]
     },
+    favourites: {
+        pastries: [{
+            pastryId: {
+                type: Schema.Types.ObjectId,
+                ref: 'Pastry',
+                required: true
+            },
+        }]
+    },
     events: [
         {
             type: Schema.Types.ObjectId,
@@ -187,7 +196,7 @@ userModel.methods.message = function (pastryId, message) {
 
 userModel.methods.addToCart = function (pastryId) {
     const cartProductIndex = this.cart.pastries.findIndex(cp => {
-        return cp.pastryId.toString() === pastryId.toString(); 
+        return cp.pastryId._id.toString() === pastryId.toString(); 
     });
     let newQuantity = 1;
     const updatedCartItems = [...this.cart.pastries];
@@ -208,9 +217,11 @@ userModel.methods.addToCart = function (pastryId) {
     return this.save();
 }
 
+
+
 userModel.methods.subFromCart = function (pastryId) {
     const cartProductIndex = this.cart.pastries.findIndex(cp => {
-        return cp.pastryId.toString() === pastryId.toString();
+        return cp.pastryId._id.toString() === pastryId.toString();
     });
     const updatedCartItems = [...this.cart.pastries];
     let quantity;
@@ -275,6 +286,32 @@ userModel.methods.clearCart = function (notOrdered, orderId) {
 
 userModel.methods.setTotal = function (total) {
     this.total += Number(total);
+    return this.save();
+}
+
+userModel.methods.postFavourite = function (pastryId) {
+    const updatedFavouriteItems = [...this.favourites.pastries];
+    let index = updatedFavouriteItems.findIndex((p) => p.pastryId.toString() === pastryId.toString());
+    if (index >= 0) {
+        return this;
+    } else {
+        updatedFavouriteItems.push({pastryId});
+    }
+    
+    const updatedFavourite = { 
+        pastries: updatedFavouriteItems
+    };
+    this.favourites = updatedFavourite; 
+    return this.save();
+};
+
+
+userModel.methods.removeFromFavourite = function (pastryId) {
+    const updatedFavouriteItems = this.favourites.pastries.filter(item => {
+        return item.pastryId.toString() !== pastryId.toString();
+    });
+
+    this.favourites.pastries = updatedFavouriteItems;
     return this.save();
 }
 

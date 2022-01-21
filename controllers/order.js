@@ -25,6 +25,8 @@ transporter.use('compile', hbs({
 const Order = require('../model/order');
 const User = require('../model/user');
 const Baker = require('../model/baker');
+const Wallet = require('../model/wallet');
+const Transaction = require('../model/transactions');
 const { validationError, errorCode, authenticationError } = require('../utils/utilities');
 
 
@@ -35,12 +37,26 @@ exports.createOrder = (req, res, next) => {
 
     const bakerId = req.query.baker;
 
-    const { location } = req.body;
+    const { total, paymentMethod, locationId } = req.body;
 
     let userInfo, bakerInfo;
 
     let notOrdered;
     let pastries;
+    let userWallet;
+    let bakerWallet;
+
+    Wallet.find()
+        .then(wallets => {
+            if (!wallets) {
+                authenticationError(req, 'Wallets not found', 401);
+            }
+            userWallet = wallets.filter(wallet => wallet.creatorId.toString() === userId.toString())[0];
+            bakerWallet = wallets.filter(wallet => wallet.creatorId.toString() === bakerId.toString())[0];
+        })
+        .catch(err => {
+            errorCode(err, 500, next);
+        });
     
     User.findById(userId)
         .populate({
@@ -48,29 +64,52 @@ exports.createOrder = (req, res, next) => {
         })
         .then(user => {
             const _pastries = user.cart.pastries;
-            pastries = _pastries.filter(pastry => pastry.pastryId.creator.toString() === bakerId.toString());
-            notOrdered = _pastries.filter(pastry => pastry.pastryId.creator.toString() !== bakerId.toString());
+            pastries = _pastries.filter(pastry => pastry.pastryId.creatorId.toString() === bakerId.toString());
+            notOrdered = _pastries.filter(pastry => pastry.pastryId.creatorId.toString() !== bakerId.toString());
             const order = new Order({
                 userId,
-                location,
+                locationId,
                 bakerId,
                 pastries,
             });
 
             userInfo = user;
-            return Promise.all([order.save(), notOrdered, user]);
+            let _order2;
+            let transaction;
+            if (paymentMethod === 'AC') {
+                if (userWallet.amount < Number(total) + 500) {
+                    return res.status(201).json({ message: 'Insufficient Aroma Coins' });
+                }
+                userWallet.amount = Number(userWallet.amount) - total;
+                bakerWallet.amount = Number(bakerWallet.amount) + total;
+                userWallet.save();
+                bakerWallet.save();
+                 transaction = new Transaction({
+                    amount: total,
+                    reason: 'Shopping',
+                    from: userId,
+                    to: bakerId,
+                    walletSender: 'User',
+                    walletReceiver: 'Baker',
+                 });
+                transaction.save();
+                _order2 = order.save();
+            }
+            return Promise.all([_order2, notOrdered, user, transaction]);
         })
         .then(result => {
             const order = result[0];
             const leftOrder = result[1];
             const user = result[2];
+            const _transaction = result[3];
             user.clearCart(leftOrder, order._id);
-            res.status(200).json({ message: 'Successfully placed order', order, user });
+            res.status(200).json({ message: 'Successfully placed order', order, user, _transaction });
             Baker.findById(bakerId)
                 .then(baker => {
                     if (!baker) {
                         authenticationError(req, 'Baker not found', 401);
                     }
+
                     baker.ordered(order._id);
                     bakerInfo = baker;
                     return baker;

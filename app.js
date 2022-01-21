@@ -24,27 +24,41 @@ const adminRoutes = require('./routes/admin');
 //     orderRoutes, 
 // } = require('./routes');
 
-const { fileStorage, fileFilter } = require('./utils/utilities');
+const {
+    fileStorage,
+    fileFilter
+} = require('./utils/utilities');
 
-const MONGODB_URI = `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASSWORD}@homeofflavours.7nvfr.mongodb.net/myFirstDatabase?retryWrites=true&w=majority`;
-// const MONGODB_URI = 'mongodb://localhost:27017/CaraCakes';
+// const MONGODB_URI = `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASSWORD}@homeofflavours.7nvfr.mongodb.net/myFirstDatabase?retryWrites=true&w=majority`;
+const MONGODB_URI = 'mongodb://localhost:27017/CaraCakes';
 
-const fields = [
-    {name: 'image'},
-    {name: 'logo'},
-    {name: 'pastryImage'},
-]
+const fields = [{
+    name: 'image',
+    maxCount: 2,
+},
+{
+    name: 'logo',
+    maxCount: 1
+},
+{
+    name: 'pastryImage',
+    maxCount: 3
+},
+];
 
 const accessLog = fs.createWriteStream(
-    path.join(__dirname, 'access.log'),
-    {flags: 'a'}
+    path.join(__dirname, 'access.log'), {
+        flags: 'a'
+    }
 )
 
 const app = express();
 
 app.use(helmet());
 app.use(compression());
-app.use(morgan('combined', {stream: accessLog}));
+app.use(morgan('combined', {
+    stream: accessLog
+}));
 
 app.use(bodyParser.json()); //application/json
 
@@ -58,7 +72,10 @@ app.use((req, res, next) => {
 app.use('/images', express.static(path.join(__dirname, 'images')));
 
 app.use(
-    multer({storage: fileStorage, fileFilter: fileFilter}).fields(fields)
+    multer({
+        storage: fileStorage,
+        fileFilter: fileFilter
+    }).fields(fields)
 )
 
 app.use(bakerRoutes);
@@ -71,12 +88,18 @@ app.use((error, req, res, next) => {
     const status = error.statusCode || 500;
     const message = error.message;
     const data = error.data;
-    res.status(status).json({message: message, data: data})
+    res.status(status).json({
+        message: message,
+        data: data
+    })
 })
 
-const port = process.env.PORT || 8081;
+const port = process.env.PORT || 8082;
 
-mongoose.connect(MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+mongoose.connect(MONGODB_URI, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true
+    })
     .then(result => {
         console.log('Connected');
         Admin.findOne()

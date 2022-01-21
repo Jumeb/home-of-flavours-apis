@@ -37,9 +37,7 @@ const { validationError, errorCode, clearImage, authenticationError } = require(
 exports.register = (req, res, next) => {
     validationError(req, 'An error occured', 422);
 
-    const name = req.body.name;
-    const email = req.body.email;
-    const password = req.body.password;
+    const { name, email, password } = req.body;
 
     bcrypt.hash(password, 12)
         .then(hashPw => {
@@ -71,8 +69,7 @@ exports.register = (req, res, next) => {
 exports.login = (req, res, next) => {
     validationError(req, 'An error occured', 422);
 
-    const email = req.body.email;
-    const password = req.body.password;
+    const { email, password } = req.body;
     let loadedAdmin;
 
     Admin.findOne({email})
@@ -278,7 +275,7 @@ exports.getAllBakers = (req, res, next) => {
         })
 };
 
-exports.getVerifiedBakers = (req, res, next) => {
+exports.getVerifiedBakersWeb = (req, res, next) => {
     const currentPage = req.query.page || 1;
     const perPage = 50;
     let totalItems;
@@ -294,6 +291,17 @@ exports.getVerifiedBakers = (req, res, next) => {
         })
         .then(bakers => {
             res.status(200).json({message: "Fetched Bakers", bakers: bakers, totalItems: totalItems})
+        })
+        .catch(err => {
+            errorCode(err, 500, next);
+        })
+}
+
+exports.getVerifiedBakersMob = (req, res, next) => {
+    Baker.find({verify: true})
+        .sort({total: 'desc'})
+        .then(bakers => {
+            res.status(200).json({message: "Fetched Bakers", bakers: bakers})
         })
         .catch(err => {
             errorCode(err, 500, next);
@@ -513,6 +521,7 @@ exports.getUser = (req, res, next) => {
                 error.statusCode = 404;
                 throw error;
             }
+            // console.log(user)
             res.status(200).json({
                 message: 'User found', 
                 user: user
@@ -632,11 +641,17 @@ exports.changePasswordUser = (req, res, next) => {
 exports.postLocation = (req, res, next) => {
     validationError(req, 'An error occured', 422);
 
-    const { location, coords } = req.body;
+    const adminId = req.params.adminId;
+
+    const { location, coords, region, deliveryFee, locationOwner } = req.body;
 
     const locate = new Location({
         location,
         coords,
+        deliveryFee,
+        region, 
+        locationOwner,
+        creatorId: adminId,
     });
 
     locate.save()
@@ -677,7 +692,7 @@ exports.editLocation = (req, res, next) => {
 
     const { locationId } = req.params;
 
-    const { location, coords } = req.body;
+    const { location, coords, region, deliveryFee, locationOwner } = req.body;
 
     Location.findById(locationId)
         .then(locate => {
@@ -686,6 +701,9 @@ exports.editLocation = (req, res, next) => {
             }
             locate.location = location || locate.location;
             locate.coords = coords || locate.coords;
+            locate.region = region || locate.region;
+            locate.deliveryFee = deliveryFee || locate.deliveryFee;
+            locate.locationOwner = locationOwner || locate.locationOwner;
             return locate.save();
         })
         .then(locate => {

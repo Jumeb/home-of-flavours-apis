@@ -76,7 +76,7 @@ exports.createEvent = (req, res, next) => {
         purpose: purpose,
         date: date,
         image: images.userImage[0].path,
-        creator: req.userId,
+        creatorId: req.userId,
     })
 
     event.save()
@@ -117,7 +117,7 @@ exports.editProfile = (req, res, next) => {
                 error.statusCode = 422;
                 throw error;
             }
-            if(event.creator !== req.userId) {
+            if(event.creatorId !== req.userId) {
                 const error = new Error("Not authorised to edit this event");
                 error.statusCode = 403;
                 throw error;

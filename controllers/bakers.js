@@ -1,4 +1,6 @@
-const {validationResult} = require('express-validator');
+const {
+    validationResult
+} = require('express-validator');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const nodemailer = require('nodemailer');
@@ -9,7 +11,7 @@ let transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
         type: "OAUTH2",
-        user: process.env.GMAIL_USERNAME,  //set these in your .env file
+        user: process.env.GMAIL_USERNAME, //set these in your .env file
         clientId: process.env.CLIENT_ID,
         clientSecret: process.env.CLIENT_SECRET,
         refreshToken: process.env.REFRESH_TOKEN,
@@ -22,27 +24,36 @@ transporter.use('compile', hbs({
     viewEngine: {
         extname: '.handlebars',
         layoutsDir: './views/',
-        defaultLayout : 'index',
+        defaultLayout: 'index',
     },
     viewPath: './views/'
 }));
 
 const Baker = require('../model/baker');
+const Wallet = require('../model/wallet');
 const Order = require('../model/order');
-const {errorCode, clearImage, validationError, authenticationError} = require('../utils/utilities');
+
+const {
+    errorCode,
+    clearImage,
+    validationError,
+    authenticationError
+} = require('../utils/utilities');
 
 exports.register = (req, res, next) => {
     validationError(req, 'An error occured', 422);
 
-    const name = req.body.name;
-    const email = req.body.email;
-    const categories = req.body.categories;
-    const companyName = req.body.companyName;
-    const idCardNumber = req.body.idCard;
-    const password = req.body.password;
-    const telNumber = req.body.tel;
+    const {
+        name,
+        email,
+        categories,
+        companyName,
+        idCardNumber,
+        password,
+        telNumber
+    } = req.body;
 
-    console.log(email, name, process.env.GMAIL_USERNAME);
+    // console.log(email, name, process.env.GMAIL_USERNAME);
 
     bcrypt.hash(password, 12)
         .then(hashedPassword => {
@@ -57,29 +68,33 @@ exports.register = (req, res, next) => {
             });
             return baker.save()
         })
+        .then(baker => {
+            const wallet = new Wallet({
+                creatorId: baker._id,
+                walletOwner: 'Baker',
+            });
+            wallet.save();
+            return baker;
+        })
         .then(result => {
-            console.log('email sending');
+            res.status(201).json({
+                message: `Welcome, ${result.name}.`,
+                baker: result
+            });
             return transporter.sendMail({
-                from: '"Jume Brice 👻" <bricejume@gmail.com>',
-                to: email,
-                subject: "Welcome to Home of Flavours",
-                text: "You have successfully signed up in HOF", 
-                template: 'register',
-                context: {
-                    name: name,
-                    companyName
-                }
-            })
-                .then(power => {
-                console.log(power, 'email sent');
-                res.status(201).json({
-                    message: 'Registration successfully!',
-                    baker: result
+                    from: '"Jume Brice 👻" <bricejume@gmail.com>',
+                    to: email,
+                    subject: "Welcome to Home of Flavours",
+                    text: "You have successfully signed up in HOF",
+                    template: 'register',
+                    context: {
+                        name: name,
+                        companyName
+                    }
                 })
-            })
                 .catch(err => {
                     errorCode(err, 500, next);
-                
+
                 });
         })
         .catch(err => {
@@ -88,13 +103,14 @@ exports.register = (req, res, next) => {
 };
 
 exports.login = (req, res, next) => {
-    const idCardNumber = req.body.email;
-    const password = req.body.password;
+    const { idCardNumber, password } = req.body;
     let loadedUser;
 
-    Baker.findOne({idCardNumber: idCardNumber})
+    Baker.findOne({
+            idCardNumber
+        })
         .then(baker => {
-            if(!baker) {
+            if (!baker) {
                 const error = new Error('User not found.');
                 error.statusCode = 401;
                 throw error;
@@ -103,7 +119,7 @@ exports.login = (req, res, next) => {
             return bcrypt.compare(password, baker.password);
         })
         .then(isEqual => {
-            if(!isEqual) {
+            if (!isEqual) {
                 const error = new Error('Wrong credentials');
                 error.statusCode = 401;
                 throw error;
@@ -126,12 +142,13 @@ exports.login = (req, res, next) => {
                     userId: loadedUser._id.toString(),
                     type: loadedUser.type,
                 },
-                    'somesupersecret',
-                    {expiresIn: '90d'}
+                'somesupersecret', {
+                    expiresIn: '90d'
+                }
             );
             res.status(200)
                 .json({
-                    token: token, 
+                    token: token,
                     user: loadedUser
                 })
         })
@@ -143,26 +160,18 @@ exports.login = (req, res, next) => {
 exports.editBaker = (req, res, next) => {
     const errors = validationResult(req);
 
-    if(!errors.isEmpty()) {
+    if (!errors.isEmpty()) {
         const error = new Error('Validation failed, entered data is incorrect');
         error.statusCode = 422;
         throw error;
     }
     const bakerId = req.params.bakerId;
 
-    const name = req.body.name;
-    const company = req.body.company;
-    const categories = req.body.categories;
-    const about = req.body.about;
-    const momo = req.body.momo;
-    const contact = req.body.contact;
-    const email = req.body.email;
-    const momoName = req.body.momoName;
-    const location = req.body.location;
+    const { name, company, categories, about, momoNumber, telNumber, email, momoName, location, upFront } = req.body;
 
     Baker.findById(bakerId)
-        .then(baker =>{
-            if(!baker) {
+        .then(baker => {
+            if (!baker) {
                 const error = new Error('Could not find Baker');
                 error.statusCode = 404;
                 throw error;
@@ -171,17 +180,21 @@ exports.editBaker = (req, res, next) => {
             baker.name = name || baker.name;
             baker.categories = categories.length >= 1 ? categories : baker.categories;
             baker.about = about || baker.about;
-            baker.telNumber = contact || baker.telNumber;
+            baker.telNumber = telNumber || baker.telNumber;
             baker.companyName = company || baker.companyName;
-            baker.momoNumber = momo || baker.momoNumber;
+            baker.momoNumber = momoNumber || baker.momoNumber;
             baker.momoName = momoName || baker.momoName;
             baker.location = location || baker.location;
             baker.email = email || baker.email;
+            baker.upFront = upFront || baker.upFront;
 
             return baker.save();
         })
         .then(result => {
-            res.status(200).json({message:'Successfully updated profile', baker: result});
+            res.status(200).json({
+                message: 'Successfully updated profile',
+                baker: result
+            });
         })
         .catch(err => {
             errorCode(err, 500, next);
@@ -190,7 +203,7 @@ exports.editBaker = (req, res, next) => {
 
 exports.editBakerImages = (req, res, next) => {
     const errors = validationResult(req);
-    if(!errors.isEmpty()) {
+    if (!errors.isEmpty()) {
         const error = new Error('Validation failed, entered data is incorrect');
         error.statusCode = 422;
         throw error;
@@ -228,7 +241,10 @@ exports.editBakerImages = (req, res, next) => {
             return baker.save();
         })
         .then(result => {
-            res.status(200).json({message: 'Image successfully updated', baker: result})
+            res.status(200).json({
+                message: 'Image successfully updated',
+                baker: result
+            })
         })
         .catch(err => {
             errorCode(err, 500, next);
@@ -238,7 +254,7 @@ exports.editBakerImages = (req, res, next) => {
 
 exports.deleteBaker = (req, res, next) => {
     const errors = validationResult(req);
-    if(!errors.isEmpty()) {
+    if (!errors.isEmpty()) {
         const error = new Error('Validation failed, entered data is incorrect');
         error.statusCode = 422;
         throw error;
@@ -258,7 +274,9 @@ exports.deleteBaker = (req, res, next) => {
             return Baker.findByIdAndRemove(bakerId);
         })
         .then(result => {
-            res.status(200).json({message: 'Successfully deleted baker'});
+            res.status(200).json({
+                message: 'Successfully deleted baker'
+            });
         })
         .catch(err => {
             errorCode(err, 500, next);
@@ -274,7 +292,7 @@ exports.orderStatus = (req, res, next) => {
 
     Order.findById(orderId)
         .then(order => {
-            if(!order) {
+            if (!order) {
                 const error = new Error("Order not found");
                 error.statusCode = 422;
                 throw error;
@@ -308,11 +326,14 @@ exports.likeBaker = (req, res, next) => {
             return baker.like(userId);
         })
         .then(result => {
-            res.status(200).json({ message: 'Succes', baker: result });
+            res.status(200).json({
+                message: 'Succes',
+                baker: result
+            });
         })
         .catch(err => {
             errorCode(err, 500, next);
-    })
+        })
 }
 
 exports.dislikeBaker = (req, res, next) => {
@@ -329,11 +350,14 @@ exports.dislikeBaker = (req, res, next) => {
             return baker.dislike(userId);
         })
         .then(result => {
-            res.status(200).json({ message: 'Succes', baker: result });
+            res.status(200).json({
+                message: 'Succes',
+                baker: result
+            });
         })
         .catch(err => {
             errorCode(err, 500, next);
-    })
+        })
 }
 
 exports.followBaker = (req, res, next) => {
@@ -350,9 +374,42 @@ exports.followBaker = (req, res, next) => {
             return baker.follow(userId);
         })
         .then(result => {
-            res.status(200).json({ message: 'Succes', baker: result });
+            res.status(200).json({
+                message: 'Succes',
+                baker: result
+            });
         })
         .catch(err => {
             errorCode(err, 500, next);
-    })
+        })
+}
+
+exports.postLocation = (req, res, next) => {
+    validationError(req, 'An error occured', 422);
+
+    const bakerId = req.params.bakerId;
+
+    const { location, coords, region, deliveryFee, locationOwner } = req.body;
+
+    const locate = new Location({
+        location,
+        coords,
+        deliveryFee,
+        region, 
+        locationOwner,
+        creatorId: bakerId,
+    });
+
+    locate.save()
+        .then(location => {
+            res.status(200)
+                .json({
+                    message: "Success",
+                    location,
+            })
+        })
+        .catch(err => {
+            errorCode(err, 500, next);
+        })
+
 }
