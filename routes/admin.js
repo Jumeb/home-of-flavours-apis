@@ -96,7 +96,7 @@ router.delete('/user/delete/:userId', isAuth, adminController.deleteUser);
 
 ///////////////////////////////////////////
 ///                                    ///
-///         Bakers routes              ///
+///         Location routes            ///
 ///                                    ///
 //////////////////////////////////////////
 
@@ -107,5 +107,13 @@ router.post('/location/:adminId', isAuth, adminController.postLocation);
 router.put('/location/:locationId', isAuth, adminController.editLocation);
 
 router.delete('/location/delete/:locationId', isAuth, adminController.deletLocation);
+
+///////////////////////////////////////////
+///                                    ///
+///         Location routes            ///
+///                                    ///
+//////////////////////////////////////////
+
+// router.post('')
 
 module.exports = router;

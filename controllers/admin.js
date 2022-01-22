@@ -13,10 +13,37 @@ let transporter = nodemailer.createTransport({
         clientId: process.env.CLIENT_ID,
         clientSecret: process.env.CLIENT_SECRET,
         refreshToken: process.env.REFRESH_TOKEN,
-        // user: process.env.EMAIL,
-        // pass: process.env.PASSWORD
+            // user: process.env.EMAIL,
+            // pass: process.env.PASSWORD
     }
 });
+
+// let transporter = nodemailer.createTransport({
+//     service: 'gmail',
+//     auth: {
+//         user: process.env.EMAIL,
+//         pass: process.env.PASSWORD
+//     }
+// });
+
+// CLIENT_ID="726092047273-qsfsckg63kss1g920f4mfr0f90i27fni.apps.googleusercontent.com"
+// CLIENT_SECRET="MNCuPuE6dv7qrwia1Uz1694M"
+// GMAIL_USERNAME="bnyuykonghi@gmail.com"
+// REFRESH_TOKEN="1//04hG7k4zRUF3lCgYIARAAGAQSNwF-L9IrxBBrLinpCrGTkAmXwIaBEJCQidm19KpvkYVi0S6bxyH6djeicKYRi-8gWv0w8fX706g"
+// ACCESS_TOKEN="ya29.a0AfH6SMD2IwsWCW1KCrx8r0jgavc2jM6Ti3vm_Uqqh3zka-JeMp2JS-vmsM7UxxPG0udCDdn-tVmv2EG53P_u-J7F7cshVKjEjNa8Qo5Cahlp_BhBe_F2-0GAThCo_2a2ry20inrRXz1D2xQJu60Wgr0fDSHg"
+
+// let transporter = nodemailer.createTransport({
+//     service: 'gmail',
+//     auth: {
+//         type: "OAUTH2",
+//         user: GMAIL_USERNAME,  //set these in your .env file
+//         clientId: CLIENT_ID,
+//         clientSecret: CLIENT_SECRET,
+//         refreshToken: REFRESH_TOKEN,
+//         // user: process.env.EMAIL,
+//         // pass: process.env.PASSWORD
+//     }
+// });
 
 transporter.use('compile', hbs({
     viewEngine: {
@@ -385,7 +412,7 @@ exports.suspendBaker = (req, res, next) => {
             return result;
         })
         .then(baker => {
-            return transporter.sendMail({
+            transporter.sendMail({
                 from: '"Jume Brice 👻" <bnyuykonghi@gmail.com>', // sender address
                 to: baker.email, // list of receivers
                 subject: baker.suspend ? "Suspended" : 'Restored',
@@ -407,6 +434,7 @@ exports.verifyBaker = (req, res, next) => {
 
     const bakerId = req.params.bakerId;
     let verify;
+    console.log(process.env.GMAIL_USERNAME)
 
     Baker.findById(bakerId)
         .then(baker => {
@@ -428,7 +456,7 @@ exports.verifyBaker = (req, res, next) => {
             return result;
         })
         .then(baker => {
-            return transporter.sendMail({
+            transporter.sendMail({
                 from: '"Jume Brice 👻" <bnyuykonghi@gmail.com>', // sender address
                 to: baker.email, // list of receivers
                 subject: "Verified account",
@@ -563,7 +591,7 @@ exports.suspendUser = (req, res, next) => {
     validationError(req, 'An error occured', 422);
 
     const userId = req.params.userId;
-
+console.log(process.env.GMAIL_USERNAME, process.env.REFRESH_TOKEN)
     User.findById(userId)
         .then(user => {
             if(!user) {
@@ -595,7 +623,8 @@ exports.suspendUser = (req, res, next) => {
             })
         })
         .catch(err => {
-            errorCode(err, 500, next);
+            console.log(err)
+            // errorCode(err, 500, next);
         })
 }
 
@@ -643,16 +672,19 @@ exports.postLocation = (req, res, next) => {
 
     const adminId = req.params.adminId;
 
-    const { location, coords, region, deliveryFee, locationOwner } = req.body;
+    const { location, coords, region, deliveryFee, locationOwner, country, town } = req.body;
 
     const locate = new Location({
+        country,
+        region, 
+        town,
         location,
         coords,
         deliveryFee,
-        region, 
         locationOwner,
         creatorId: adminId,
     });
+    console.log(locate)
 
     locate.save()
         .then(location => {
@@ -692,16 +724,18 @@ exports.editLocation = (req, res, next) => {
 
     const { locationId } = req.params;
 
-    const { location, coords, region, deliveryFee, locationOwner } = req.body;
+    const { location, coords, region, deliveryFee, locationOwner, country, town } = req.body;
 
     Location.findById(locationId)
         .then(locate => {
             if (!locate) {
                 authenticationError('Location not found', 422);
             }
+            locate.country = country || locate.country;
+            locate.region = region || locate.region;
+            locate.town = town || locate.town;
             locate.location = location || locate.location;
             locate.coords = coords || locate.coords;
-            locate.region = region || locate.region;
             locate.deliveryFee = deliveryFee || locate.deliveryFee;
             locate.locationOwner = locationOwner || locate.locationOwner;
             return locate.save();
@@ -729,7 +763,7 @@ exports.deletLocation = (req, res, next) => {
             }
             res.status(201)
                 .json({
-                    message: 'Success',
+                    message: 'Deleted Successfully.',
                     result
                 });
         })
