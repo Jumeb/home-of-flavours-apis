@@ -18,33 +18,6 @@ let transporter = nodemailer.createTransport({
     }
 });
 
-// let transporter = nodemailer.createTransport({
-//     service: 'gmail',
-//     auth: {
-//         user: process.env.EMAIL,
-//         pass: process.env.PASSWORD
-//     }
-// });
-
-// CLIENT_ID="726092047273-qsfsckg63kss1g920f4mfr0f90i27fni.apps.googleusercontent.com"
-// CLIENT_SECRET="MNCuPuE6dv7qrwia1Uz1694M"
-// GMAIL_USERNAME="bnyuykonghi@gmail.com"
-// REFRESH_TOKEN="1//04hG7k4zRUF3lCgYIARAAGAQSNwF-L9IrxBBrLinpCrGTkAmXwIaBEJCQidm19KpvkYVi0S6bxyH6djeicKYRi-8gWv0w8fX706g"
-// ACCESS_TOKEN="ya29.a0AfH6SMD2IwsWCW1KCrx8r0jgavc2jM6Ti3vm_Uqqh3zka-JeMp2JS-vmsM7UxxPG0udCDdn-tVmv2EG53P_u-J7F7cshVKjEjNa8Qo5Cahlp_BhBe_F2-0GAThCo_2a2ry20inrRXz1D2xQJu60Wgr0fDSHg"
-
-// let transporter = nodemailer.createTransport({
-//     service: 'gmail',
-//     auth: {
-//         type: "OAUTH2",
-//         user: GMAIL_USERNAME,  //set these in your .env file
-//         clientId: CLIENT_ID,
-//         clientSecret: CLIENT_SECRET,
-//         refreshToken: REFRESH_TOKEN,
-//         // user: process.env.EMAIL,
-//         // pass: process.env.PASSWORD
-//     }
-// });
-
 transporter.use('compile', hbs({
     viewEngine: {
         extname: '.handlebars',
@@ -271,21 +244,9 @@ exports.createBaker = (req, res, next) => {
 }
 
 exports.getBakers = (req, res, next) => {
-    const currentPage = req.query.page || 1;
-    const perPage = 50;
-    let totalItems;
     Baker.find()
-        .sort({name: 'asc'})
-        .countDocuments()
-        .then(count => {
-            totalItems = count;
-            return Baker.find() //put verify here by end of day
-                .sort({companyName: 'asc'})
-                .skip((currentPage - 1) * perPage)
-                .limit(perPage)
-        })
         .then(bakers => {
-            res.status(200).json({message: "Fetched Bakers", bakers: bakers, totalItems: totalItems})
+            res.status(200).json({message: "Fetched Bakers", bakers: bakers})
         })
         .catch(err => {
             errorCode(err, 500, next);
@@ -303,21 +264,9 @@ exports.getAllBakers = (req, res, next) => {
 };
 
 exports.getVerifiedBakersWeb = (req, res, next) => {
-    const currentPage = req.query.page || 1;
-    const perPage = 50;
-    let totalItems;
     Baker.find()
-        .sort({total: 'desc'})
-        .countDocuments()
-        .then(count => {
-            totalItems = count;
-            return Baker.find({verify: true}) //put verify here by end of day
-                // .sort({total: 'desc'})
-                .skip((currentPage - 1) * perPage)
-                .limit(perPage)
-        })
         .then(bakers => {
-            res.status(200).json({message: "Fetched Bakers", bakers: bakers, totalItems: totalItems})
+            res.status(200).json({message: "Fetched Bakers", bakers: bakers})
         })
         .catch(err => {
             errorCode(err, 500, next);
@@ -425,7 +374,8 @@ exports.suspendBaker = (req, res, next) => {
             })
         })
         .catch(err => {
-            errorCode(err, 500, next);
+            console.log(err);
+            // errorCode(err, 500, next);
         })
 }
 
@@ -469,13 +419,14 @@ exports.verifyBaker = (req, res, next) => {
             })
         })
         .catch(err => {
-            errorCode(err, 500, next);
+            console.log(err)
+            // errorCode(err, 500, next);
         })
 }
 
 exports.deleteBaker = (req, res, next) => {
     const errors = validationResult(req);
-    if(!errors.isEmpty()) {
+    if (!errors.isEmpty()) {
         const error = new Error('Validation failed, entered data is incorrect');
         error.statusCode = 422;
         throw error;
@@ -495,12 +446,26 @@ exports.deleteBaker = (req, res, next) => {
             return Baker.findByIdAndRemove(bakerId);
         })
         .then(result => {
-            res.status(200).json({message: 'Successfully deleted baker'});
+            res.status(200).json({ message: 'Successfully deleted baker' });
+        })
+        .then(result => {
+            Pastry.find({ creatorId: bakerId })
+                .then(pastries => {
+                    if (!pastries) {
+                        const error = new Error('Baker not found');
+                        error.statusCode = 422;
+                        throw error;
+                    }
+                    pastries.map((pastry, index) => {
+                        pastry.map((p, i) => clearImage(p?.image));
+                        pastry.findByIdAndRemove(p._id);
+                    })
+                })
         })
         .catch(err => {
             errorCode(err, 500, next);
         })
-}
+};
 
 
 ///////////////////////////////////////////
@@ -510,19 +475,9 @@ exports.deleteBaker = (req, res, next) => {
 //////////////////////////////////////////
 
 exports.getUsers = (req, res, next) => {
-    const currentPage = req.query.page || 1;
-    const perPage = 50;
-    let totalItems;
     User.find()
-        .countDocuments()
-        .then(count => {
-            totalItems = count;
-            return User.find()
-                .skip((currentPage - 1) * perPage)
-                .limit(perPage)
-        })
         .then(users => {
-            res.status(200).json({message: "Fetched Bakers", users: users, totalItems: totalItems})
+            res.status(200).json({message: "Fetched Bakers", users: users})
         })
         .catch(err => {
             errorCode(err, 500)
@@ -591,7 +546,6 @@ exports.suspendUser = (req, res, next) => {
     validationError(req, 'An error occured', 422);
 
     const userId = req.params.userId;
-console.log(process.env.GMAIL_USERNAME, process.env.REFRESH_TOKEN)
     User.findById(userId)
         .then(user => {
             if(!user) {

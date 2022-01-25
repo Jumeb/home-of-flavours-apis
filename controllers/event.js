@@ -7,24 +7,13 @@ const pastry = require('../model/pastry');
 
 exports.getEvents = (req, res, next) => {
     validationError(req, 'An error occured', 422);
-    const currentPage = req.query.page || 1;
-    const perPage = 18;
-    let totalItems;
 
     Event.find()
-        .countDocuments()
-        .then(count => {
-            totalItems = count;
-            return Event.find()
-                .skip((currentPage - 1) * perPage)
-                .limit(perPage)
-        })
         .then(events => {
             res.status(200)
                 .json({
                     message: 'Fetched events',
                     events: events,
-                    totalItems: totalItems
                 })
         })
         .catch(err => {

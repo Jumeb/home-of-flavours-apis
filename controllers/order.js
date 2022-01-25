@@ -182,11 +182,9 @@ exports.getSuperOrders = (req, res, next) => {
         })
         .populate({
             path: 'bakerId',
-            select: 'companyName'
         })
         .populate({
             path: 'userId',
-            select: 'name suspend image likes dislikes'
         })
         .then(orders => {
             if (!orders) {
@@ -240,7 +238,6 @@ exports.getMyOrders = (req, res, next) => {
         })
         .populate({
             path: 'bakerId',
-            select: 'companyName name suspend verify momoNumber coupons'
         })
         .then(orders => {
             if (!orders) {
@@ -277,7 +274,6 @@ exports.getBakerOrders = (req, res, next) => {
         })
         .populate({
             path: 'userId',
-            select: 'name suspend image likes dislikes'
         })
         .then(orders => {
             if (!orders) {

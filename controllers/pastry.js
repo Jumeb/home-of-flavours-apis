@@ -7,24 +7,13 @@ const {errorCode, clearImage, validationError, authenticationError} = require('.
 exports.getPastries = (req, res, next) => {
     validationError(req, 'An error occured', 422);
     const bakerId = req.params.bakerId;
-    const currentPage = req.query.page || 1;
-    const perPage = 50;
-    let totalItems;
 
     Pastry.find({creatorId: bakerId})
-        .countDocuments()
-        .then(count => {
-            totalItems = count;
-            return Pastry.find({creatorId: bakerId})
-                .skip((currentPage - 1) * perPage)
-                .limit(perPage)
-        })
         .then(pastries => {
             res.status(200)
                 .json({
                     message: 'Fetched Pastries', 
-                    pastries: pastries, 
-                    totalItems: totalItems
+                    pastries: pastries,
                 })
         })
         .catch(err => {
@@ -35,25 +24,13 @@ exports.getPastries = (req, res, next) => {
 exports.getSuperPastriesWeb = (req, res, next) => {
     validationError(req, 'An error occured', 422);
 
-    const currentPage = req.query.page || 1;
-    const perPage = 50;
-    let totalItems;
 
     Pastry.find()
-        .countDocuments()
-        .then(count => {
-            totalItems = count;
-            return Pastry.find()
-                .populate('creatorId')
-                .skip((currentPage - 1) * perPage)
-                .limit(perPage)
-        })
         .then(pastries => {
             res.status(200)
                 .json({
                     message: 'Fetched Pastries', 
-                    pastries: pastries, 
-                    totalItems: totalItems
+                    pastries: pastries,
                 })
         })
         .catch(err => {
