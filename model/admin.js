@@ -7,6 +7,9 @@ const adminModel = new Schema({
         type: String,
         required: true,
     },
+    companyName: {
+        type: String,
+    },
     email: {
         type: String,
         required: true,
@@ -17,13 +20,30 @@ const adminModel = new Schema({
     },
     type: {
         type: String,
-        default: 'Admin',
+        default: 'Delivery Agent',
     },
     telNumber: {
         type: String,
     },
-    image: {
+    about: {
         type: String,
+    },
+    momoName: {
+        type: String,
+    },
+    momoNumber: {
+        type: Number,
+    },
+    verify: {
+        type: Boolean,
+        default: true,
+    },
+    suspend: {
+        type: Boolean,
+        default: false,
+    },
+    image: {
+        type: [String],
     }
 }, { timestamps: true });
 

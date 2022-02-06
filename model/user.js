@@ -16,7 +16,24 @@ const userModel = new Schema({
         required: true,
         default: 123456,
     },
+    momoName: {
+        type: String,
+    },
+    locationId: {
+        type: Schema.Types.ObjectId,
+        ref: 'Location',
+    },
+    workId: {
+        type: Schema.Types.ObjectId,
+        ref: 'Location',
+    },
+    momoNumber: {
+        type: Number,
+    },
     image: {
+        type: [String],
+    },
+    about: {
         type: String,
     },
     password: {
@@ -60,9 +77,6 @@ const userModel = new Schema({
     suspend: {
         type: Boolean,
         default: false,
-    },
-    location: {
-        type: String,
     },
     cart: {
         pastries: [{

@@ -31,19 +31,29 @@ const Baker = require('../model/baker');
 const User = require('../model/user');
 const Admin = require('../model/admin');
 const Order = require('../model/order');
+const Pastry = require('../model/pastry');
 const Location = require('../model/location');
+const Transactions = require('../model/transactions');
+const Wallet = require('../model/wallet');
 const { validationError, errorCode, clearImage, authenticationError } = require('../utils/utilities');
+const transactions = require('../model/transactions');
 
 exports.register = (req, res, next) => {
     validationError(req, 'An error occured', 422);
 
-    const { name, email, password } = req.body;
+    const { name, tel, email, companyName, type, about, momoName, momoNumber, password } = req.body;
 
     bcrypt.hash(password, 12)
         .then(hashPw => {
             const admin = new Admin({
-                name: name,
-                email: email,
+                name,
+                email,
+                telNumber: tel,
+                companyName,
+                type,
+                about,
+                momoName,
+                momoNumber,
                 password: hashPw
             })
 
@@ -58,7 +68,7 @@ exports.register = (req, res, next) => {
             res.status(200)
                 .json({
                     message: 'Successfully registered an admin',
-                    admin: admin,
+                    admin,
                 })
         })
         .catch(err => {
@@ -72,10 +82,10 @@ exports.login = (req, res, next) => {
     const { email, password } = req.body;
     let loadedAdmin;
 
-    Admin.findOne({email})
+    Admin.findOne({ email })
         .then(admin => {
-            if(!admin) {
-                const error = new Error('Admin not registered');
+            if (!admin) {
+                const error = new Error('User not found.');
                 error.statusCode = 422;
                 throw error;
             }
@@ -83,36 +93,36 @@ exports.login = (req, res, next) => {
             return bcrypt.compare(password, admin.password)
         })
         .then(isEqual => {
-            if(!isEqual) {
+            if (!isEqual) {
                 const error = new Error('Wrong credentials');
                 error.statusCode = 422;
                 throw error;
             }
             const token = jwt.sign({
-                email:loadedAdmin.email,
+                email: loadedAdmin.email,
                 userId: loadedAdmin._id.toString(),
                 name: loadedAdmin.name,
-            }, 
+            },
                 'somesupersecret',
-                {expiresIn: '90d'}
+                { expiresIn: '90d' }
             );
             res.status(200)
                 .json({
-                    token: token, 
+                    token: token,
                     user: loadedAdmin,
                 })
         })
         .catch(err => {
+            // console.log(err)
             errorCode(err, 500, next);
         })
-}
+};
 
 exports.updateProfile = (req, res, next) => {
     validationError(req, 'An error occured', 422);
     const adminId = req.params.adminId;
 
-    const { name, contact, email } = req.body;
-
+    const { name, tel, email, companyName, type, about, momoName, momoNumber } = req.body;
     Admin.findById(adminId)
         .then(admin => {
             if (!admin) {
@@ -120,7 +130,12 @@ exports.updateProfile = (req, res, next) => {
             }
             admin.name = name || admin.name;
             admin.email = email || admin.email;
-            admin.telNumber = contact || admin.telNumber;
+            admin.telNumber = tel || admin.telNumber;
+            admin.companyName = companyName || admin.companyName;
+            admin.type = type || admin.type;
+            admin.about = about || admin.about;
+            admin.momoNumber = momoNumber || admin.momoNumber;
+            admin.momoName = momoName || admin.momoName;
             return admin.save();
         })
         .then(admin => {
@@ -137,10 +152,10 @@ exports.editImage = (req, res, next) => {
 
     const adminId = req.params.adminId;
 
-    let image;
+    let image = [];
 
     if (req.files.image) {
-        image = req.files.image[0].path;
+        req.files.image.map((i, index) => image.push(i.path));
     }
 
     Admin.findById(adminId)
@@ -148,20 +163,68 @@ exports.editImage = (req, res, next) => {
             if (!admin) {
                 authenticationError('Admin not found', 422);
             }
-            if (image !== admin.image) {
-                clearImage(admin.image);
+            if (image && image.length >= 1) {
+                let clear = admin?.image.filter(x => !image.includes(x));
+                clear.map((i) => clearImage(i));
+                admin.image = admin.image.filter(item => clear.indexOf(item) < 0);
+                admin.image = image.concat(admin?.image.filter((item) => image.indexOf(item) < 0));
+                if (clear !== admin?.image) {
+                    admin.image = admin?.image.concat(clear).slice(0, 3)
+                }
             }
-            admin.image = image || admin.image;
             return admin.save();
         })
         .then(admin => {
             res.status(200)
-                .json({ message: 'Image successfully updated', admin });
+                .json({ message: 'Image successfully updated', user: admin });
+        })
+        .catch(err => {
+            errorCode(err, 500, next);
+        })
+};
+
+exports.getAdmins = (req, res, next) => {
+    validationError(req, 'An error occured', 422);
+
+    Admin.find()
+        .then(admins => {
+        if (!admins) {
+                authenticationError('Admin not found', 422);
+        }
+            res.status(200).json({message: 'Partners fetched', partners: admins})
         })
         .catch(err => {
             errorCode(err, 500, next);
     })
 
+}
+
+exports.deleteAdmin = (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        const error = new Error('Validation failed, entered data is incorrect');
+        error.statusCode = 422;
+        throw error;
+    }
+
+    const adminId = req.params.adminId;
+
+    Admin.findById(adminId)
+        .then(admin => {
+            if (!admin) {
+                const error = new Error('Baker not found');
+                error.statusCode = 422;
+                throw error;
+            }
+            admin.image.map((i) => clearImage(i));
+            return Admin.findByIdAndRemove(adminId);
+        })
+        .then(result => {
+            res.status(200).json({ message: 'Successfully deleted Admin' });
+        })
+        .catch(err => {
+            errorCode(err, 500, next);
+        })
 }
 
 exports.changePasswordAdmin = (req, res, next) => {
@@ -174,7 +237,7 @@ exports.changePasswordAdmin = (req, res, next) => {
             bcrypt.compare(oldPassword, admin.password)
                 .then(isEqual => {
                     if (!isEqual) {
-                        authenticationError('Password mismatch', 422);
+                        authenticationError('Old Password mismatch', 422);
                     }
                     bcrypt.hash(newPassword, 12)
                         .then(hashedPassword => {
@@ -294,7 +357,7 @@ exports.changePasswordBaker = (req, res, next) => {
             bcrypt.compare(oldPassword, baker.password)
                 .then(isEqual => {
                     if (!isEqual) {
-                        authenticationError('Password mismatch', 422);
+                        authenticationError('Old Password mismatch', 422);
                     }
                     bcrypt.hash(newPassword, 12)
                         .then(hashedPassword => {
@@ -361,21 +424,21 @@ exports.suspendBaker = (req, res, next) => {
             return result;
         })
         .then(baker => {
-            transporter.sendMail({
-                from: '"Jume Brice 👻" <bnyuykonghi@gmail.com>', // sender address
-                to: baker.email, // list of receivers
-                subject: baker.suspend ? "Suspended" : 'Restored',
-                text: baker.suspend ? "You account has been suspended" : "You account has been restored" ,
-                template: baker.suspend ? 'suspend' : 'unsuspend',
-                context: {
-                    name: baker.name,
-                    companyName: baker.companyName,
-                }
-            })
+            // transporter.sendMail({
+            //     from: '"Jume Brice 👻" <bnyuykonghi@gmail.com>', // sender address
+            //     to: baker.email, // list of receivers
+            //     subject: baker.suspend ? "Suspended" : 'Restored',
+            //     text: baker.suspend ? "You account has been suspended" : "You account has been restored" ,
+            //     template: baker.suspend ? 'suspend' : 'unsuspend',
+            //     context: {
+            //         name: baker.name,
+            //         companyName: baker.companyName,
+            //     }
+            // })
         })
         .catch(err => {
-            console.log(err);
-            // errorCode(err, 500, next);
+            // console.log(err);
+            errorCode(err, 500, next);
         })
 }
 
@@ -384,7 +447,7 @@ exports.verifyBaker = (req, res, next) => {
 
     const bakerId = req.params.bakerId;
     let verify;
-    console.log(process.env.GMAIL_USERNAME)
+    // console.log(process.env.GMAIL_USERNAME);
 
     Baker.findById(bakerId)
         .then(baker => {
@@ -406,21 +469,20 @@ exports.verifyBaker = (req, res, next) => {
             return result;
         })
         .then(baker => {
-            transporter.sendMail({
-                from: '"Jume Brice 👻" <bnyuykonghi@gmail.com>', // sender address
-                to: baker.email, // list of receivers
-                subject: "Verified account",
-                text: "You account has been verified" ,
-                template: 'welcome',
-                context: {
-                    name: baker.name,
-                    companyName: baker.companyName,
-                }
-            })
+            // transporter.sendMail({
+            //     from: '"Jume Brice 👻" <bnyuykonghi@gmail.com>', // sender address
+            //     to: baker.email, // list of receivers
+            //     subject: "Verified account",
+            //     text: "You account has been verified" ,
+            //     template: 'welcome',
+            //     context: {
+            //         name: baker.name,
+            //         companyName: baker.companyName,
+            //     }
+            // })
         })
         .catch(err => {
-            console.log(err)
-            // errorCode(err, 500, next);
+            errorCode(err, 500, next);
         })
 }
 
@@ -441,7 +503,7 @@ exports.deleteBaker = (req, res, next) => {
                 error.statusCode = 422;
                 throw error;
             }
-            clearImage(baker.ceoImage);
+            baker.ceoImage.map((i) => clearImage(i));
             clearImage(baker.companyImage);
             return Baker.findByIdAndRemove(bakerId);
         })
@@ -449,17 +511,29 @@ exports.deleteBaker = (req, res, next) => {
             res.status(200).json({ message: 'Successfully deleted baker' });
         })
         .then(result => {
-            Pastry.find({ creatorId: bakerId })
-                .then(pastries => {
-                    if (!pastries) {
+            Wallet.find({ creatorId: bakerId })
+                .then(wallet => {
+                    if (!wallet) {
                         const error = new Error('Baker not found');
                         error.statusCode = 422;
                         throw error;
                     }
-                    pastries.map((pastry, index) => {
-                        pastry.map((p, i) => clearImage(p?.image));
-                        pastry.findByIdAndRemove(p._id);
-                    })
+                    return Wallet.findByIdAndRemove(wallet[0]._id);
+                })
+            Pastry.find({ creatorId: bakerId })
+                .then(pastries => {
+                    if (!pastries) {
+                        const error = new Error('No pastries found');
+                        error.statusCode = 422;
+                        throw error;
+                    }
+                    let ids = [];
+                    pastries.map((pastry) => {
+                        pastry.image.map((i) => clearImage(i));
+                        ids.push(pastry._id);
+                        Pastry.findByIdAndRemove(pastry._id)
+                    });
+                    ids.map((i) => { Pastry.findByIdAndRemove(i) });
                 })
         })
         .catch(err => {
@@ -565,20 +639,19 @@ exports.suspendUser = (req, res, next) => {
             return result;
         })
         .then(user => {
-            return transporter.sendMail({
-                from: '"Jume Brice 👻" <bnyuykonghi@gmail.com>',
-                to: user.email, 
-                subject: user.suspend ? "Suspended" : 'Restored',
-                text: user.suspend ? "You account has been suspended" : "You account has been restored" ,
-                template: user.suspend ? 'suspendUser' : 'unsuspendUser',
-                context: {
-                    name: user.name,
-                }
-            })
+            // return transporter.sendMail({
+            //     from: '"Jume Brice 👻" <bnyuykonghi@gmail.com>',
+            //     to: user.email, 
+            //     subject: user.suspend ? "Suspended" : 'Restored',
+            //     text: user.suspend ? "You account has been suspended" : "You account has been restored" ,
+            //     template: user.suspend ? 'suspendUser' : 'unsuspendUser',
+            //     context: {
+            //         name: user.name,
+            //     }
+            // })
         })
         .catch(err => {
-            console.log(err)
-            // errorCode(err, 500, next);
+            errorCode(err, 500, next);
         })
 }
 
@@ -592,7 +665,7 @@ exports.changePasswordUser = (req, res, next) => {
             bcrypt.compare(oldPassword, user.password)
                 .then(isEqual => {
                     if (!isEqual) {
-                        authenticationError('Password mismatch', 422);
+                        authenticationError('Old Password mismatch.', 422);
                     }
                     bcrypt.hash(newPassword, 12)
                         .then(hashedPassword => {
@@ -638,7 +711,6 @@ exports.postLocation = (req, res, next) => {
         locationOwner,
         creatorId: adminId,
     });
-    console.log(locate)
 
     locate.save()
         .then(location => {
@@ -725,3 +797,88 @@ exports.deletLocation = (req, res, next) => {
             errorCode(err, 500, next);
     })
 }
+
+///////////////////////////////////////////
+///                                    ///
+///     Transactions controllers       ///
+///                                    ///
+//////////////////////////////////////////
+
+exports.getMyTransactions = (req, res, next) => {
+    validationError(req, 'An error occured', 422);
+
+    const userId = req.params.userId;
+
+    Transactions.find({from: userId} || {to: userId})
+        .then(transactions => {
+            res.status(200)
+                .json({
+                    message: 'Success',
+                    transactions,
+            })
+        })
+        .catch(err => {
+            errorCode(err, 500, next);
+    })
+}
+
+exports.transferAC = (req, res, next) => {
+
+    const { email, amount } = req.body;
+    const { userId } = req.params;
+
+    let userWallet;
+    let AdminWallet;
+    let _wallets;
+
+    Wallet.find()
+        .then(wallets => {
+            if (!wallets) {
+                authenticationError(req, 'Wallets not found', 401);
+            }
+            _wallets = wallets;
+            userWallet = wallets.filter(wallet => wallet.creatorId.toString() === userId.toString())[0];
+            AdminWallet = wallets.filter(wallet => wallet.walletOwner.toString() === 'Admin')[0];
+        })
+        .catch(err => {
+            errorCode(err, 500, next);
+        });
+    
+
+    User.find({ email: email })
+        .then(user => {
+            receiverWallet = _wallets.filter(wallet => wallet.creatorId.toString() === user[0]._id.toString())[0];
+            if (userWallet.amount < Number(Number(amount) + (Number(amount) * 0.05))) {
+                return res.status(404).json({ message: 'Aroma coins insufficient.' });
+            }
+            let transaction;
+            receiverWallet.amount = Number(receiverWallet.amount) + Number(amount);
+            userWallet.amount = Number(userWallet.amount) - (Number(amount) + (Number(amount) * 0.05));
+            AdminWallet.amount = Number(AdminWallet.amount) + (Number(amount) * 0.05);
+            userWallet.save();
+            receiverWallet.save();
+            AdminWallet.save();
+            transaction = new Transactions({
+                amount: Number(amount),
+                reason: 'Transfer',
+                from: userId,
+                to: user._id,
+                walletSender: 'User',
+                walletReceiver: 'User',
+            });
+            transaction.save();
+            transaction = new Transactions({
+                amount: Number(amount) * 0.05,
+                reason: 'Transfer Fee',
+                from: userId,
+                to: AdminWallet.creatorId,
+                walletSender: 'User',
+                walletReceiver: 'Admin',
+            });
+            transaction.save();
+            return res.status(200).json({ message: 'Transfer Successful' });
+        })
+        .catch(err => {
+            errorCode(err, 500, next);
+        })
+};

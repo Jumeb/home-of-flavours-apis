@@ -57,9 +57,13 @@ router.post('/baker/dislike/:bakerId', isAuth, bakersController.dislikeBaker);
 
 router.post('/baker/follow/:bakerId', isAuth, bakersController.followBaker);
 
-router.put('/baker/images/:bakerId',  bakersController.editBakerImages)
+router.put('/baker/images/:bakerId', bakersController.editBakerImages);
+
+router.put('/baker/logo/:bakerId', bakersController.editBakerLogo);
 
 router.put('/baker/profile/:bakerId', isAuth, bakersController.editBaker);
+
+router.put('/baker/editlocation/:bakerId', bakersController.editLocation);
 
 router.delete('/bakers/:bakerId', isAuth, bakersController.deleteBaker);
 

@@ -17,6 +17,9 @@ const pastryRoutes = require('./routes/pastry');
 const orderRoutes = require('./routes/order');
 const adminRoutes = require('./routes/admin');
 
+const Wallet = require('./model/wallet');
+
+
 // const {
 //     bakerRoutes, 
 //     userRoutes, 
@@ -34,7 +37,7 @@ const MONGODB_URI = `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO
 
 const fields = [{
     name: 'image',
-    maxCount: 2,
+    maxCount: 3,
 },
 {
     name: 'logo',
@@ -97,9 +100,9 @@ app.use((error, req, res, next) => {
 const port = process.env.PORT || 8082;
 
 mongoose.connect(MONGODB_URI, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true
-    })
+    useNewUrlParser: true,
+    useUnifiedTopology: true
+})
     .then(result => {
         console.log('Connected');
         Admin.findOne()
@@ -109,9 +112,20 @@ mongoose.connect(MONGODB_URI, {
                         const admin = new Admin({
                             name: 'JBInc',
                             password: hashPassword,
-                            email: 'bricejume@gmail.com'
+                            email: 'bricejume@gmail.com',
+                            type: 'SuperAdmin',
+                            companyName: 'Just Brilliant Incorporation',
+                            verify: true,
+                            suspend: false,
                         });
-                        admin.save();
+                        return admin.save();
+                    }).then((user) => {
+                        const wallet = new Wallet({
+                            creatorId: user._id,
+                            walletOwner: 'Admin',
+                        })
+                        wallet.save();
+                        return user;
                     })
                 }
             })

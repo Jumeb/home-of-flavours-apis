@@ -37,7 +37,7 @@ exports.createOrder = (req, res, next) => {
 
     const bakerId = req.query.baker;
 
-    const { total, paymentMethod, locationId } = req.body;
+    const { total, paymentMethod, locationId, deliveryFee } = req.body;
 
     let userInfo, bakerInfo;
 
@@ -45,6 +45,7 @@ exports.createOrder = (req, res, next) => {
     let pastries;
     let userWallet;
     let bakerWallet;
+    let AdminWallet;
 
     Wallet.find()
         .then(wallets => {
@@ -53,6 +54,7 @@ exports.createOrder = (req, res, next) => {
             }
             userWallet = wallets.filter(wallet => wallet.creatorId.toString() === userId.toString())[0];
             bakerWallet = wallets.filter(wallet => wallet.creatorId.toString() === bakerId.toString())[0];
+            AdminWallet = wallets.filter(wallet => wallet.walletOwner.toString() === 'Admin')[0];
         })
         .catch(err => {
             errorCode(err, 500, next);
@@ -71,19 +73,22 @@ exports.createOrder = (req, res, next) => {
                 locationId,
                 bakerId,
                 pastries,
+                paymentMethod: paymentMethod === 'AC' ? 'Aroma Coins' : 'Cash on delivery',
             });
 
             userInfo = user;
             let _order2;
             let transaction;
             if (paymentMethod === 'AC') {
-                if (userWallet.amount < Number(total) + 500) {
-                    return res.status(201).json({ message: 'Insufficient Aroma Coins' });
+                if (userWallet.amount < Number(total)) {
+                    return res.status(404).json({ message: 'Insufficient Aroma Coins' });
                 }
-                userWallet.amount = Number(userWallet.amount) - total;
-                bakerWallet.amount = Number(bakerWallet.amount) + total;
+                userWallet.amount = Number(userWallet.amount) - (Number(total) + Number(deliveryFee));
+                bakerWallet.amount = Number(bakerWallet.amount) + Number(total);
+                AdminWallet.amount = Number(AdminWallet.amount) + Number(deliveryFee);
                 userWallet.save();
                 bakerWallet.save();
+                AdminWallet.save();
                  transaction = new Transaction({
                     amount: total,
                     reason: 'Shopping',
@@ -93,8 +98,17 @@ exports.createOrder = (req, res, next) => {
                     walletReceiver: 'Baker',
                  });
                 transaction.save();
-                _order2 = order.save();
+                transaction = new Transaction({
+                    amount: deliveryFee,
+                    reason: 'Delivery Fee',
+                    from: userId,
+                    to: AdminWallet.creatorId,
+                    walletSender: 'User',
+                    walletReceiver: 'Admin',
+                });
+                transaction.save();
             }
+            _order2 = order.save();
             return Promise.all([_order2, notOrdered, user, transaction]);
         })
         .then(result => {
@@ -115,27 +129,27 @@ exports.createOrder = (req, res, next) => {
                     return baker;
                 })
                 .then(baker => {
-                    return Promise.all([transporter.sendMail({
-                        from: '"Jume Brice 👻" <bnyuykonghi@gmail.com>', // sender address
-                        to: baker.email, // list of receivers
-                        subject: 'New Order',
-                        text: "You have a new order",
-                        template: "order",
-                        context: {
-                            name: baker.name,
-                            userName: userInfo.name,
-                        }
-                    }), transporter.sendMail({
-                        from: '"Jume Brice 👻" <bnyuykonghi@gmail.com>', // sender address
-                        to: userInfo.email, // list of receivers
-                        subject: 'New Order',
-                        text: "You have a new order",
-                        template: "orderUser",
-                        context: {
-                            name: userInfo.name,
-                            companyName: baker.companyName,
-                        }
-                    })]);
+                    // return Promise.all([transporter.sendMail({
+                    //     from: '"Jume Brice 👻" <bnyuykonghi@gmail.com>', // sender address
+                    //     to: baker.email, // list of receivers
+                    //     subject: 'New Order',
+                    //     text: "You have a new order",
+                    //     template: "order",
+                    //     context: {
+                    //         name: baker.name,
+                    //         userName: userInfo.name,
+                    //     }
+                    // }), transporter.sendMail({
+                    //     from: '"Jume Brice 👻" <bnyuykonghi@gmail.com>', // sender address
+                    //     to: userInfo.email, // list of receivers
+                    //     subject: 'New Order',
+                    //     text: "You have a new order",
+                    //     template: "orderUser",
+                    //     context: {
+                    //         name: userInfo.name,
+                    //         companyName: baker.companyName,
+                    //     }
+                    // })]);
                 })
                 .catch(err => {
                     errorCode(err, 500, next);
@@ -178,13 +192,7 @@ exports.getSuperOrders = (req, res, next) => {
 
     Order.find()
         .populate({
-            path: "pastries.pastryId",
-        })
-        .populate({
-            path: 'bakerId',
-        })
-        .populate({
-            path: 'userId',
+            path: "pastries.pastryId bakerId userId locationId",
         })
         .then(orders => {
             if (!orders) {
@@ -239,24 +247,14 @@ exports.getMyOrders = (req, res, next) => {
         .populate({
             path: 'bakerId',
         })
+        .populate({
+            path: 'locationId',
+        })
         .then(orders => {
             if (!orders) {
                 authenticationError(req, 'Orders not found', 401);
             }
-            _orders = orders;
-            const data = (orders) => {
-                orders.map((i) => {
-                    let _baker = i.bakerId.companyName.toString();
-                    if (obj[_baker] === undefined) {
-                        obj[_baker] = [i];
-                    } else {
-                        obj[_baker].push(i);
-                    }
-                });
-                return obj;
-            };
-            let bakerOrders = data(_orders);
-            res.status(200).json({ message: 'All you orders', orders: bakerOrders })
+            res.status(200).json({ message: 'All you orders', orders: orders.sort((a,b) => {return a.status - b.status}) })
         })
         .catch(err => {
             errorCode(err, 500, next);
@@ -275,6 +273,12 @@ exports.getBakerOrders = (req, res, next) => {
         .populate({
             path: 'userId',
         })
+        .populate({
+            path: 'bakerId',
+        })
+        .populate({
+            path: 'locationId',
+        })
         .then(orders => {
             if (!orders) {
                 authenticationError(req, 'Orders not found', 401);
@@ -290,7 +294,6 @@ exports.incStatus = (req, res, next) => {
     validationError(req, 'An error occured', 422);
 
     const orderId = req.params.orderId;
-    const total = req.query.total;
 
     let status = 'On the Way';
 
@@ -300,13 +303,13 @@ exports.incStatus = (req, res, next) => {
                 authenticationError(req, 'Order was not found', 401);
             }
             if (order.status === 'New') {
-                status = 'Registered';
+                status = 'Accepted';
             }
-            if (order.status === 'Registered') {
+            if (order.status === 'Accepted') {
                 status = 'Processing';
             }
             if (order.status === 'Processing') {
-                status = 'On the Way';
+                status = 'On the way';
             }
             if (order.status === 'Delivered') {
                 status = 'Confirmed';
@@ -321,18 +324,6 @@ exports.incStatus = (req, res, next) => {
         })
         .then(order => {
             res.status(200).json({ message: 'Success', order });
-            if (order.status === 'Confirmed') {
-                Baker.findById(order.bakerId)
-                    .then(baker => {
-                        if (!baker) {
-                            authenticationError(req, 'Baker not found', 401);
-                        }
-                        baker.setTotal(total);
-                    })
-                    .catch(err => {
-                        errorCode(err, 500, next);
-                    });
-            }
         })
         .catch(err => {
             errorCode(err, 500, next);
@@ -344,7 +335,6 @@ exports.deliveredStatus = (req, res, next) => {
     validationError(req, 'An error occured', 422);
 
     const orderId = req.params.orderId;
-    const total = req.query.total;
 
     let status = '';
 
@@ -354,7 +344,7 @@ exports.deliveredStatus = (req, res, next) => {
                 authenticationError(req, 'Order not found', 401);
             }
             status = order.status;
-            if (status === 'On the Way') {
+            if (status === 'On the way') {
                 status = 'Delivered';
             }
             order.status = status;
@@ -362,18 +352,66 @@ exports.deliveredStatus = (req, res, next) => {
         })
         .then(order => {
             res.status(200).json({ message: 'Success', order });
-            if (order.status === 'Delivered') {
-                User.findById(order.userId)
-                    .then(user => {
-                        if (!user) {
-                            authenticationError(req, 'User not found', 401);
-                        }
-                        user.setTotal(total);
-                    })
-                    .catch(err => {
-                        errorCode(err, 500, next);
-                    });
+        })
+        .catch(err => {
+            errorCode(err, 500, next);
+        })
+};
+
+
+exports.cancelStatus = (req, res, next) => {
+    validationError(req, 'An error occured', 422);
+
+    const orderId = req.params.orderId;
+
+    let status = '';
+
+    let userWallet;
+    let bakerWallet;
+    let AdminWallet;
+
+    Wallet.find()
+        .then(wallets => {
+            if (!wallets) {
+                authenticationError(req, 'Wallets not found', 401);
             }
+            userWallet = wallets.filter(wallet => wallet.creatorId.toString() === userId.toString())[0];
+            bakerWallet = wallets.filter(wallet => wallet.creatorId.toString() === bakerId.toString())[0];
+            AdminWallet = wallets.filter(wallet => wallet.walletOwner.toString() === 'Admin')[0];
+        })
+        .catch(err => {
+            errorCode(err, 500, next);
+        });
+
+    Order.findById(orderId)
+        .populate({
+            path: 'locationId'
+        })
+        .then(order => {
+            if (!order) {
+                authenticationError(req, 'Order not found', 401);
+            }
+            Wallet.find()
+                .then(wallets => {
+                    if (!wallets) {
+                        authenticationError(req, 'Wallets not found', 401);
+                    }
+                    userWallet = wallets.filter(wallet => wallet.creatorId.toString() === order.userId.toString())[0];
+                    bakerWallet = wallets.filter(wallet => wallet.creatorId.toString() === order.bakerId.toString())[0];
+                    AdminWallet = wallets.filter(wallet => wallet.walletOwner.toString() === 'Admin')[0];
+                })
+            if (order.paymentMethod === 'Aroma Coins') {
+                userWallet.amount = userWallet.amount + Number(order?.locationId?.deliveryFee);
+                bakerWallet.amount = bakerWallet.amount - Number(order?.locationId?.deliveryFee);
+                userWallet.save();
+                bakerWallet.save();
+            }
+            status = 'Cancelled';
+            order.status = status;
+            return order.save();
+        })
+        .then(order => {
+            res.status(200).json({ message: 'Success', order });
         })
         .catch(err => {
             errorCode(err, 500, next);

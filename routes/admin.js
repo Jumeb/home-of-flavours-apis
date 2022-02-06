@@ -31,11 +31,15 @@ router.post('/admin/register', [
 
 router.post('/admin/login', adminController.login);
 
+router.get('/admins', isAuth, adminController.getAdmins);
+
 router.put('/admin/image/:adminId', adminController.editImage);
 
 router.put('/admin/updateprofile/:adminId', isAuth, adminController.updateProfile);
 
 router.put('/admin/changepassword/:adminId', isAuth, adminController.changePasswordAdmin);
+
+router.delete('/admin/delete/:adminId', isAuth, adminController.deleteAdmin);
 
 
 ///////////////////////////////////////////
@@ -100,7 +104,7 @@ router.delete('/user/delete/:userId', isAuth, adminController.deleteUser);
 ///                                    ///
 //////////////////////////////////////////
 
-router.get('/locations', isAuth, adminController.getLocations);
+router.get('/locations', adminController.getLocations);
 
 router.post('/location/:adminId', isAuth, adminController.postLocation);
 
@@ -110,10 +114,12 @@ router.delete('/location/delete/:locationId', isAuth, adminController.deletLocat
 
 ///////////////////////////////////////////
 ///                                    ///
-///         Location routes            ///
+///      Transaction routes            ///
 ///                                    ///
 //////////////////////////////////////////
 
-// router.post('')
+router.get('/transaction/:userId', isAuth, adminController.getMyTransactions);
+
+router.post('/transfer/:userId', isAuth, adminController.transferAC);
 
 module.exports = router;

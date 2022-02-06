@@ -5,7 +5,7 @@ const Schema = mongoose.Schema;
 const walletModel = new Schema({
     amount: {
         type: Number,
-        default: 200,
+        default: 200000,
     },
     limit: {
         type: Number,
@@ -19,7 +19,7 @@ const walletModel = new Schema({
     walletOwner: {
         type: String,
         required: true,
-        enum: ['Baker', 'User']
+        enum: ['Baker', 'User', 'Admin']
     }
 }, { timestamps: true });
 

@@ -44,7 +44,6 @@ exports.getSuperPastriesMob = (req, res, next) => {
     Pastry.find()
         .populate('creatorId')
         .then(pastries => {
-            // console.log(pastries)
             res.status(200)
                 .json({
                     message: 'Fetched Pastries',
@@ -120,7 +119,6 @@ exports.createPastry = (req, res, next) => {
     });
     pastry.save()
         .then(result => {
-            console.log(result)
             res.status(201)
                 .json({
                     message: 'Flavour added successfully',
@@ -128,7 +126,6 @@ exports.createPastry = (req, res, next) => {
                 })
         })
         .catch(err => {
-            console.log(err, 'hhh')
             errorCode(err, 500, next);
         })
 
@@ -186,7 +183,6 @@ exports.editPastry = (req, res, next) => {
                     pastry.image = pastry?.image.concat(clear).slice(0, 3)
                 }
             }
-            console.log(pastry);
             return pastry.save();
         })
         .then(result => {
@@ -258,14 +254,38 @@ exports.deletePastry = (req, res, next) => {
                 error.statusCode = 422;
                 throw error;
             }
-            pastry.image.map((i) => clearImage(i));
+            if (pastry && pastry.image && pastry.image.length >= 1) {
+                pastry.image.map((i) => clearImage(i));
+            }
             return Pastry.findByIdAndRemove(pastryId);
         })
         .then(result => {
             res.status(200).json({message: 'Successfully deleted pastry'});
         })
         .catch(err => {
-            errorCode(err, 500);
+            errorCode(err, 500, next);
+        })
+}
+
+exports.deletePastryAdmin = (req, res, next) => {
+    validationError(req, 'An error occured', 422);
+
+    const pastryId = req.params.pastryId;
+
+    Pastry.findById(pastryId)
+        .then(pastry => {
+            if (!pastry) {
+                const error = new Error('Pastry not found');
+                error.statusCode = 422;
+                throw error;
+            }
+            return Pastry.findByIdAndRemove(pastryId);
+        })
+        .then(result => {
+            res.status(200).json({message: 'Successfully deleted pastry'});
+        })
+        .catch(err => {
+            errorCode(err, 500, next);
         })
 }
 

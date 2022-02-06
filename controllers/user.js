@@ -9,14 +9,13 @@ const jwt = require("jsonwebtoken");
 const User = require("../model/user");
 const Wallet = require('../model/wallet');
 const Pastry = require("../model/pastry");
+const Location = require('../model/location');
 const {
   errorCode,
   clearImage,
   validationError,
   authenticationError,
 } = require("../utils/utilities");
-const baker = require("../model/baker");
-const wallet = require("../model/wallet");
 
 let transporter = nodemailer.createTransport({
   service: 'gmail',
@@ -107,6 +106,9 @@ exports.login = (req, res, next) => {
 
   User.findOne({
       email
+  })
+    .populate({
+      path: 'locationId workId orders.ordered.orderId cart.pastries.pastryId'
     })
     .then((user) => {
       if (!user) {
@@ -158,10 +160,9 @@ exports.getCart = (req, res, next) => {
 
   User.findById(userId)
     .populate({
-      path: "cart.pastries.pastryId",
+      path: "cart.pastries.pastryId locationId workId",
       populate: {
         path: "creatorId",
-        select: "companyName name suspend verify",
       },
     })
     .then((user) => {
@@ -179,8 +180,6 @@ exports.getCart = (req, res, next) => {
         return obj;
       };
       let bakers = data(pastries);
-      // console.log(bakers)
-      // console.log(user.cart.pastries[0].pastryId)
       res.status(200).json({
         message: "Success",
         bakers: bakers,
@@ -202,7 +201,6 @@ exports.postCart = (req, res, next) => {
           path: "cart.pastries.pastryId",
           populate: {
             path: "creatorId",
-            select: "companyName name suspend verify",
           },
         })
         .then((user) => {
@@ -211,10 +209,9 @@ exports.postCart = (req, res, next) => {
         .then((user) => {
           User.findById(user._id)
             .populate({
-              path: "cart.pastries.pastryId",
+              path: "cart.pastries.pastryId locationId workId",
               populate: {
                 path: "creatorId",
-                select: "companyName name suspend verify",
               },
             }).then(user => {
               let obj = {};
@@ -255,10 +252,9 @@ exports.subFromCart = (req, res, next) => {
     .then((pastry) => {
       User.findById(userId)
         .populate({
-          path: "cart.pastries.pastryId",
+          path: "cart.pastries.pastryId locationId workId",
           populate: {
             path: "creatorId",
-            select: "companyName name suspend verify",
           },
         })
         .then((user) => {
@@ -371,27 +367,28 @@ exports.editUser = (req, res, next) => {
     name,
     email,
     contact,
-    location
+    momoName,
+    momoNumber,
+    about,
   } = req.body;
 
   User.findById(userId)
     .populate({
-      path: 'orders.ordered.orderId',
-      select: 'pastries status',
+      path: 'locationId workId orders.ordered.orderId',
       populate: {
         path: 'pastries.pastryId',
-        select: 'price discount',
       }
     })
     .then(user => {
       if (!user) {
         authenticationError('User not found.', 404);
       }
-
       user.name = name || user.name;
       user.email = email || user.email;
       user.telNumber = contact || user.telNumber;
-      user.location = location || user.location;
+      user.momoName = momoName || user.momoName;
+      user.momoNumber = momoNumber || user.momoNumber;
+      user.about = about || user.about;
 
       return user.save();
     })
@@ -412,15 +409,15 @@ exports.editUserImage = (req, res, next) => {
 
   const userId = req.params.userId;
 
-  let image;
+  let image = [];
 
   if (req.files.image) {
-    image = req.files.image[0].path;
+    req.files.image.map((i, index) => image.push(i.path));
   }
 
   User.findById(userId)
     .populate({
-      path: 'orders.ordered.orderId',
+      path: 'orders.ordered.orderId locationId workId',
       select: 'pastries status',
       populate: {
         path: 'pastries.pastryId',
@@ -431,11 +428,15 @@ exports.editUserImage = (req, res, next) => {
       if (!user) {
         authenticationError('User not found', 404);
       }
-      if (image !== user.image) {
-        clearImage(user.image);
+      if (image && image.length >= 1) {
+        let clear = user?.image.filter(x => !image.includes(x));
+        clear.map((i) => clearImage(i));
+        user.image = user.image.filter(item => clear.indexOf(item) < 0);
+        user.image = image.concat(user?.image.filter((item) => image.indexOf(item) < 0));
+        if (clear !== user?.image) {
+          user.image = user?.image.concat(clear).slice(0, 3)
+        }
       }
-
-      user.image = image;
       return user.save();
     })
     .then(user => {
@@ -496,34 +497,118 @@ exports.disLikeUser = (req, res, next) => {
 }
 
 exports.postLocation = (req, res, next) => {
-    validationError(req, 'An error occured', 422);
+  validationError(req, 'An error occured', 422);
 
-    const userId = req.params.userId;
+  const userId = req.params.userId;
 
-    const { location, coords, region, deliveryFee, locationOwner } = req.body;
+  const { location, coords, region, deliveryFee, locationOwner, town, type } = req.body;
 
-    const locate = new Location({
-        location,
-        coords,
-        deliveryFee,
-        region, 
-        locationOwner,
-        creatorId: userId,
+  const locate = new Location({
+    location,
+    coords,
+    deliveryFee,
+    region,
+    town,
+    locationOwner,
+    creatorId: userId,
+  });
+  
+  let userLocation;
+  
+  User.findById(userId)
+    .then(user => {
+      if (!user) {
+        const error = new Error("User not found.");
+        error.statusCode = 401;
+        throw error;
+      }
+      userLocation = user;
     });
 
-    locate.save()
-        .then(location => {
-            res.status(200)
-                .json({
-                    message: "Success",
-                    location,
+  locate.save()
+    .then(location => {
+      if (type === 'Home') {
+        userLocation.locationId = location?._id;
+          
+      }
+      if (type === 'Work') {
+        userLocation.workId = location?._id;
+      }
+      userLocation.save();
+      User.findById(userId)
+        .populate({
+          path: 'locationId workId'
+        })
+        .then(user => {
+          if (!user) {
+            const error = new Error("User not found.");
+            error.statusCode = 401;
+            throw error;
+          }
+          res.status(200)
+            .json({
+              message: "Success",
+              user,
             })
         })
-        .catch(err => {
-            errorCode(err, 500, next);
-        })
+    })
+    .catch(err => {
+      errorCode(err, 500, next);
+    })
+};
 
-}
+
+exports.editLocation = (req, res, next) => {
+  validationError(req, 'An error occured', 422);
+
+  const userId = req.params.userId;
+
+  const locationId = req.query.location;
+
+  const { location, coords, region, country, locationOwner, town, type } = req.body;
+  
+  let userLocation;
+  
+  User.findById(userId)
+    .then(user => {
+      if (!user) {
+        const error = new Error("User not found.");
+        error.statusCode = 401;
+        throw error;
+      }
+      userLocation = user;
+    });
+
+  Location.findById(locationId)
+    .then(locale => {
+      locale.location = location || locale?.location;
+      locale.coords = coords || locale?.coords;
+      locale.region = region || locale?.region;
+      locale.country = country || locale?.country;
+      locale.locationOwner = locationOwner || locale?.locationOwner;
+      locale.town = town || location?.town;
+      locale.save();
+      User.findById(userId)
+        .populate({
+          path: 'locationId workId'
+        })
+        .then(user => {
+          if (!user) {
+            const error = new Error("User not found.");
+            error.statusCode = 401;
+            throw error;
+          }
+          res.status(200)
+            .json({
+              message: "Success",
+              user,
+            })
+        })
+    })
+    .catch(err => {
+      errorCode(err, 500, next);
+    })
+};
 
 exports.getFavourites = (req, res, next) => {
   validationError(req, "An error occured", 422);
@@ -533,7 +618,6 @@ exports.getFavourites = (req, res, next) => {
       path: "favourites.pastries.pastryId",
       populate: {
         path: "creatorId",
-        select: "companyName name suspend verify",
       },
     })
     .then((user) => {

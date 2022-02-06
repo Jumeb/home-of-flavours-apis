@@ -20,7 +20,7 @@ const bakerModel = new Schema({
         required: true,
     },
     ceoImage: {
-        type: String,
+        type: [String],
     },
     companyImage: {
         type: String,
@@ -45,8 +45,9 @@ const bakerModel = new Schema({
     about: {
         type: String
     },
-    location: {
-        type: String,
+    workId: {
+        type: Schema.Types.ObjectId,
+        ref: 'Location'
     },
     suspend: {
         type: Boolean,
@@ -57,7 +58,7 @@ const bakerModel = new Schema({
         default: false,
     },
     likes: {
-         users: [{
+        users: [{
             userId: {
                 type: Schema.Types.ObjectId,
                 ref: 'User',
@@ -66,7 +67,7 @@ const bakerModel = new Schema({
         }]
     },
     dislikes: {
-         users: [{
+        users: [{
             userId: {
                 type: Schema.Types.ObjectId,
                 ref: 'User',
@@ -75,7 +76,7 @@ const bakerModel = new Schema({
         }]
     },
     followers: {
-         users: [{
+        users: [{
             userId: {
                 type: Schema.Types.ObjectId,
                 ref: 'User',
@@ -110,13 +111,13 @@ const bakerModel = new Schema({
     },
     upFront: {
         type: Number,
-        default: 0,   
+        default: 0,
     },
     password: {
         type: String,
         required: true,
     }
-}, {timestamps: true});
+}, { timestamps: true });
 
 bakerModel.methods.like = function (userId) {
     const userIndex = this.likes.users.findIndex(ui => {

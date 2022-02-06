@@ -28,12 +28,12 @@ const transactionsModel = new Schema({
     walletSender: {
         type: String,
         required: true,
-        enum: ['Baker', 'User']
+        enum: ['Baker', 'User', 'Admin']
     },
     walletReceiver: {
         type: String,
         required: true,
-        enum: ['Baker', 'User']
+        enum: ['Baker', 'User', 'Admin']
     }
 }, { timestamps: true });
 

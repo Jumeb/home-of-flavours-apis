@@ -32,6 +32,7 @@ transporter.use('compile', hbs({
 const Baker = require('../model/baker');
 const Wallet = require('../model/wallet');
 const Order = require('../model/order');
+const Location = require('../model/location');
 
 const {
     errorCode,
@@ -52,8 +53,6 @@ exports.register = (req, res, next) => {
         password,
         telNumber
     } = req.body;
-
-    // console.log(email, name, process.env.GMAIL_USERNAME);
 
     bcrypt.hash(password, 12)
         .then(hashedPassword => {
@@ -77,21 +76,22 @@ exports.register = (req, res, next) => {
             return baker;
         })
         .then(result => {
+
             res.status(201).json({
                 message: `Welcome, ${result.name}.`,
                 baker: result
             });
             return transporter.sendMail({
-                    from: '"Jume Brice 👻" <bricejume@gmail.com>',
-                    to: email,
-                    subject: "Welcome to Home of Flavours",
-                    text: "You have successfully signed up in HOF",
-                    template: 'register',
-                    context: {
-                        name: name,
-                        companyName
-                    }
-                })
+                from: '"Jume Brice 👻" <bricejume@gmail.com>',
+                to: email,
+                subject: "Welcome to Home of Flavours",
+                text: "You have successfully signed up in HOF",
+                template: 'register',
+                context: {
+                    name: name,
+                    companyName
+                }
+            })
                 .catch(err => {
                     errorCode(err, 500, next);
 
@@ -167,9 +167,12 @@ exports.editBaker = (req, res, next) => {
     }
     const bakerId = req.params.bakerId;
 
-    const { name, company, categories, about, momoNumber, telNumber, email, momoName, location, upFront } = req.body;
+    const { name, company, categories, about, momoNumber, telNumber, email, momoName, upFront } = req.body;
 
     Baker.findById(bakerId)
+        .populate({
+            path: 'workId'
+        })
         .then(baker => {
             if (!baker) {
                 const error = new Error('Could not find Baker');
@@ -184,7 +187,6 @@ exports.editBaker = (req, res, next) => {
             baker.companyName = company || baker.companyName;
             baker.momoNumber = momoNumber || baker.momoNumber;
             baker.momoName = momoName || baker.momoName;
-            baker.location = location || baker.location;
             baker.email = email || baker.email;
             baker.upFront = upFront || baker.upFront;
 
@@ -214,12 +216,10 @@ exports.editBakerImages = (req, res, next) => {
     let ceoImage;
     let companyImage;
 
-    if (req.files.logo) {
-        companyImage = req.files.logo[0].path;
-    }
-
+    let image = [];
+    
     if (req.files.image) {
-        ceoImage = req.files.image[0].path;
+        req.files.image.map((i, index) => image.push(i.path));
     }
 
     Baker.findById(bakerId)
@@ -229,28 +229,71 @@ exports.editBakerImages = (req, res, next) => {
                 error.statusCode = 422;
                 throw error;
             }
-            if (companyImage !== baker.companyImage) {
-                clearImage(baker.companyImage);
+            if (image && image.length >= 1) {
+                let clear = baker?.ceoImage.filter(x => !image.includes(x));
+                clear.map((i) => clearImage(i));
+                baker.ceoImage = baker.ceoImage.filter(item => clear.indexOf(item) < 0);
+                baker.ceoImage = image.concat(baker?.ceoImage.filter((item) => image.indexOf(item) < 0));
+                if (clear !== baker?.ceoImage) {
+                    baker.ceoImage = baker?.ceoImage.concat(clear).slice(0, 3)
+                }
             }
-
-            if (ceoImage !== baker.ceoImage) {
-                clearImage(baker.ceoImage);
-            }
-            baker.companyImage = companyImage || baker.companyImage;
-            baker.ceoImage = ceoImage || baker.ceoImage;
             return baker.save();
         })
         .then(result => {
             res.status(200).json({
                 message: 'Image successfully updated',
-                baker: result
+                user: result
             })
         })
         .catch(err => {
             errorCode(err, 500, next);
         })
 
-}
+};
+
+
+exports.editBakerLogo = (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        const error = new Error('Validation failed, entered data is incorrect');
+        error.statusCode = 422;
+        throw error;
+    }
+
+    const bakerId = req.params.bakerId;
+    let companyImage;
+
+    let image;
+    
+    if (req.files.image) {
+        companyImage = req.files.image[0].path;
+    }
+
+    Baker.findById(bakerId)
+        .then(baker => {
+            if (!baker) {
+                const error = new Error('Baker not found');
+                error.statusCode = 422;
+                throw error;
+            }
+            if (companyImage !== baker?.companyImage) {
+                clearImage(baker?.companyImage);
+            }
+            baker.companyImage = companyImage;
+            return baker.save();
+        })
+        .then(result => {
+            res.status(200).json({
+                message: 'Image successfully updated',
+                user: result
+            })
+        })
+        .catch(err => {
+            errorCode(err, 500, next);
+        })
+
+};
 
 exports.deleteBaker = (req, res, next) => {
     const errors = validationResult(req);
@@ -389,27 +432,106 @@ exports.postLocation = (req, res, next) => {
 
     const bakerId = req.params.bakerId;
 
-    const { location, coords, region, deliveryFee, locationOwner } = req.body;
+    const { location, coords, region, deliveryFee, locationOwner, town } = req.body;
 
     const locate = new Location({
         location,
         coords,
         deliveryFee,
-        region, 
+        region,
         locationOwner,
+        town,
         creatorId: bakerId,
     });
 
+    let bakerLocation;
+  
+    Baker.findById(bakerId)
+        .then(baker => {
+            if (!baker) {
+                const error = new Error("Chef not found.");
+                error.statusCode = 401;
+                throw error;
+            }
+            bakerLocation = baker;
+        })
+
     locate.save()
         .then(location => {
-            res.status(200)
-                .json({
-                    message: "Success",
-                    location,
-            })
+            bakerLocation.workId = location?._id;
+            bakerLocation.save();
+            Baker.findById(bakerId)
+                .populate({
+                    path: 'workId'
+                })
+                .then(baker => {
+                    if (!baker) {
+                        const error = new Error("Chef not found.");
+                        error.statusCode = 401;
+                        throw error;
+                    }
+                    res.status(200)
+                        .json({
+                            message: "Success",
+                            user: baker,
+                        })
+                })
         })
         .catch(err => {
             errorCode(err, 500, next);
         })
 
-}
+};
+
+exports.editLocation = (req, res, next) => {
+  validationError(req, 'An error occured', 422);
+
+  const bakerId = req.params.bakerId;
+
+  const locationId = req.query.location;
+
+  const { location, coords, region, country, locationOwner, town, type } = req.body;
+  
+  let userLocation;
+  
+  Baker.findById(bakerId)
+    .then(user => {
+      if (!user) {
+        const error = new Error("User not found.");
+        error.statusCode = 401;
+        throw error;
+      }
+      userLocation = user;
+    });
+
+  Location.findById(locationId)
+    .then(locale => {
+      locale.location = location || locale?.location;
+      locale.coords = coords || locale?.coords;
+      locale.region = region || locale?.region;
+      locale.country = country || locale?.country;
+      locale.locationOwner = locationOwner || locale?.locationOwner;
+      locale.town = town || location?.town;
+      locale.save();
+      Baker.findById(bakerId)
+        .populate({
+          path: 'workId'
+        })
+        .then(user => {
+          if (!user) {
+            const error = new Error("User not found.");
+            error.statusCode = 401;
+            throw error;
+          }
+          res.status(200)
+            .json({
+              message: "Success",
+              user,
+            })
+        })
+    })
+    .catch(err => {
+      console.log(err)
+    //   errorCode(err, 500, next);
+    })
+};

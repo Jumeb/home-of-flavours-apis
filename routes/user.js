@@ -58,4 +58,6 @@ router.put("/user/image/:userId", userController.editUserImage);
 
 router.put("/user/profile/:userId", userController.editUser);
 
+router.put('/user/editlocation/:userId', userController.editLocation);
+
 module.exports = router;

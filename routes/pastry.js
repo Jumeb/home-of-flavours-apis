@@ -22,6 +22,8 @@ router.post('/pastry/like/:pastryId', pastryController.likePastry);
 
 router.post('/pastry/dislike/:pastryId', pastryController.disLikePastry);
 
-router.delete('/pastry/delete/:pastryId', pastryController.deletePastry)
+router.delete('/pastry/delete/:pastryId', pastryController.deletePastry);
+
+router.delete('/pastry/delete/admin/:pastryId', pastryController.deletePastryAdmin);
 
 module.exports = router;

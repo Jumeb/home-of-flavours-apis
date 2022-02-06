@@ -6,13 +6,12 @@ const orderModel = new Schema({
     userId: {
         type: Schema.Types.ObjectId,
         ref: 'User',
-        require: true,
+        required: true,
     },
-    // location: {
-    //     type: Schema.Types.ObjectId,
-    //     ref: 'Location',
-    //     required: true,
-    // },
+    paymentMethod: {
+        type: String,
+        required: true,
+    },
     date: {
         type: Date,
         //date or delivery
@@ -39,6 +38,11 @@ const orderModel = new Schema({
     bakerId: {
         type: Schema.Types.ObjectId,
         ref: 'Baker',
+        required: true,
+    },
+    locationId: {
+        type: Schema.Types.ObjectId,
+        ref: 'Location',
         required: true,
     },
     status: {

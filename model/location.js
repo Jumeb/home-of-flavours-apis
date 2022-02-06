@@ -18,11 +18,11 @@ const locationModel = new Schema({
     },
     location: {
         type: String,
-        required: true,
+        // required: true,
     },
     coords: {
         type: [Number],
-        required: true,
+        // required: true,
     },
     deliveryFee: {
         type: Number,
